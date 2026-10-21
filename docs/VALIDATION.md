@@ -16,7 +16,16 @@ Data: 21/10/2026. Ambiente: Linux, Node 24.21.0, npm 11.19.0. Versões efetivas 
 | `git diff --check` | Passou |
 | `npm audit --omit=dev` | Zero vulnerabilidades reportadas |
 | `npm audit` completo | 5 alertas altos na cadeia de desenvolvimento do lint; pendência abaixo |
-| Supabase Auth externo / SQL RLS / Realtime | Não executados: sem credenciais, PostgreSQL, Docker ou CLI Supabase neste ambiente |
+| Supabase CLI / banco remoto de desenvolvimento | Organização e projeto criados pela CLI; migrations `202610210001` e `202610210002` aplicadas e listadas no histórico remoto |
+| Lint SQL remoto | Passou: `npx supabase db lint --linked --fail-on error`, sem erros de schema |
+| Verificação remota de RLS/grants | Passou em consulta de catálogo: 10 tabelas com RLS; authenticated sem `UPDATE` direto; RPC permitida a authenticated e negada a anon |
+| Smoke test remoto de `select_mascot` | Passou com dois usuários sintéticos: escolhas iguais e independentes, troca de um sem alterar o outro e rejeição de espécie desconhecida; fixtures removidas na mesma operação |
+| Docker rootless | Engine 29.9.2/Compose 5.6.1 instalados; daemon rootless ativo; imagem oficial `hello-world` executada com sucesso |
+| Supabase local | Stack mínima ativa (Postgres, Auth, REST, Kong e Mailpit); endpoints locais Auth/Mailpit responderam HTTP 200 |
+| Migrations e lint locais | Duas migrations aplicadas; `npx supabase db lint --local --fail-on error` sem erros |
+| Isolamento SQL local | `supabase/tests/isolation.sql` passou no container Postgres; fixtures foram revertidas pelo `ROLLBACK` |
+| Signup público / Auth de usuários | Cadastro público desativado na instância local e remota; ainda sem contas convidadas, portanto login real não testado |
+| Realtime local/remoto | Não executado; serviço local foi excluído para reduzir consumo e interface ainda não assina eventos |
 
 Comando de navegador usado neste ambiente:
 
@@ -47,20 +56,20 @@ Referência: [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-
 
 App local com cinco áreas responsivas; dados fictícios em memória; receitas/despesas, filtros, reversão e consolidação; desafio com responsável, histórico e progresso; personagens originais; navegação mobile e atalho ao formulário; estados básicos de erro/carregamento/vazio e configuração ausente. PRD, arquitetura, roadmap, exemplo de ambiente e instruções locais disponíveis.
 
-## Preparado, sem validação externa
+## Preparado e validado nos ambientes Supabase
 
-Login Supabase por e-mail/senha, renovação de cookies, validação de usuário no servidor e saída implementados para configuração externa. Migração SQL define modelo, constraints, RLS de leitura, bloqueio de escrita de negócio, índices de idempotência, auditoria e publicação Realtime. Contrato de IA e esboço puro de recompensas não chamam provedores nem persistem prêmios.
+Projeto remoto de desenvolvimento criado pela CLI em `sa-east-1` (São Paulo), vinculado ao repositório; as duas migrations foram aplicadas e conferidas. A aplicação local aponta para o Supabase Docker em `http://127.0.0.1:54321`; os dados de acesso remoto e chaves administrativas locais ficam em `supabase/.env.local`, ignorado e com permissão restrita. O daemon Docker roda rootless e não concede acesso ao grupo `docker`.
 
-O script `supabase/tests/isolation.sql` prepara testes PostgreSQL com fixtures sintéticas e rollback: leitura do parceiro, isolamento de tenants/contas/perfis/auditoria, vínculo revogado, usuário anônimo e bloqueio de escrita/forja de membros. **Não foi executado aqui.** Aplicação da migração, comportamento dos gatilhos, Auth remoto e políticas SQL não são declarados validados.
+O lint local e remoto passou. O teste SQL local de dois tenants passou: leitura do parceiro, isolamento entre casais, perfil revogado, usuário anônimo, tentativas de forjar vínculo, escrita financeira e apagamento de auditoria; tudo foi revertido. O teste remoto de mascote e os grants/RLS também foram conferidos. Cadastros públicos estão desativados nas duas instâncias; a tela `/entrar` aceita e-mail/senha, mas ainda não foram criadas contas, pois os e-mails do casal serão fornecidos depois. Localmente, os e-mails de convite poderão ser abertos no Mailpit em `http://127.0.0.1:54324`.
 
 ## Limites e próximo passo
 
-Atualização de requisito na Sprint 01: seleção individual de espécie incorporada ao PRD, arquitetura e roadmap. Esta atualização altera somente documentação. Catálogo/FK, operação de seleção persistente e seletor de UI ainda não foram implementados nem testados; as garantias de preservação de progressão/inventário são contratos para as respectivas implementações. O componente e as telas atuais ainda exibem os animais iniciais fixos. Os resultados de testes acima pertencem à fundação entregue e não comprovam a seleção personalizável. Para esta atualização documental, verificar consistência dos requisitos e `git diff --check`; não é necessário repetir build/testes de código inalterado.
+Atualização de requisito na Sprint 01: `202610210002_mascot_species.sql` foi aplicada no Supabase de desenvolvimento e a RPC passou smoke test sintético. Seletor da interface ainda não implementado; componentes e telas continuam exibindo os mascotes iniciais fixos. As garantias de preservação de progressão/inventário são contratos para sistemas futuros, não funcionalidades testadas. A validação de RPC não substitui o teste completo de isolamento SQL.
 
-- Sem persistência financeira real, onboarding, convites, CRUD real de contas, transferências reais ou RPCs transacionais de aporte/reversão. A demonstração não gerencia saldo livre por conta.
+- Sem persistência financeira real, onboarding de relacionamento, criação dos dois convites, CRUD real de contas, transferências reais ou RPCs transacionais de aporte/reversão. A demonstração não gerencia saldo livre por conta.
 - Escritas reais deliberadamente bloqueadas. Não liberar grants/políticas de escrita antes de validar autorização, escopo, idempotência e concorrência nas operações de aplicação.
 - Sem distribuição de XP/moedas, níveis, inventário, missões, itens ou cenário evolutivo. Esboço de motor depende de chaves canônicas confiáveis e persistência transacional futura.
 - Sem voz, API de IA, assinaturas Realtime da interface, funcionamento offline, notificações ou teste de instalação em celular físico.
 - Autenticação configurada não muda a origem dos dados financeiros: todas as áreas seguem em demo com aviso persistente.
 
-Próxima entrega: configurar Supabase descartável, executar migração/testes SQL, completar consentimento/onboarding do casal e implementar o primeiro fluxo financeiro persistente com RPCs, auditoria e testes de dois tenants.
+Próxima entrega: receber os dois e-mails, criar os convites no Supabase local e validar login/sessão; depois implementar o seletor persistente de espécie e o primeiro fluxo financeiro com RPCs transacionais e auditoria.

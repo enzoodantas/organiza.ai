@@ -2,7 +2,7 @@
 
 ## Estado da fundação
 
-Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts apresenta valores fictícios. Supabase fornece os clientes de Auth e o destino da migração SQL; não há banco externo configurado automaticamente.
+Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts apresenta valores fictícios. Um projeto Supabase remoto de desenvolvimento em `sa-east-1` foi provisionado e vinculado pela CLI. Para uso diário, `.env.local` aponta ao stack Docker local rootless, mantido leve com Postgres, Auth, REST, Kong e Mailpit. Chaves e senha do banco ficam somente em arquivo local ignorado pelo Git. Nenhum desses bancos alimenta as telas financeiras ainda.
 
 ## Estrutura
 
@@ -36,7 +36,7 @@ Destino: formulário manual ou proposta de IA confirmada → comando de aplicaç
 | Tabela | Responsabilidade e relações |
 | --- | --- |
 | profiles | Identidade financeira mínima; PK vinculada a auth.users; nome e espécie selecionada individualmente em mascot |
-| mascot_species (incremento planejado) | Catálogo extensível; chave estável cat/dog, nome de exibição e disponibilidade para seleção; será referenciado por profiles.mascot |
+| mascot_species | Catálogo extensível; chave estável cat/dog, nome de exibição e disponibilidade para seleção; referenciado por profiles.mascot |
 | relationships | Tenant financeiro; múltiplos casais por instalação |
 | relationship_members | N:N entre perfil e relacionamento; datas de entrada e revogação |
 | accounts | Conta individual (owner obrigatório) ou conjunta (owner nulo); BRL |
@@ -52,11 +52,11 @@ Chaves estrangeiras compostas garantem que contas, participantes e campanhas per
 
 ## Acesso: o que está ativo e o que falta
 
-RLS habilitada em todas as tabelas. Funções privadas SECURITY DEFINER, search_path vazio e execução restrita evitam recursão e vazamento. Autenticados podem ler apenas tenants ativos; profiles é visível para si ou parceiros ativos. Anônimos não têm grants. Membros revogados não passam por is_member. Cliente não pode escrever membros, auditoria ou recompensas.
+RLS habilitada em todas as tabelas; a consulta ao banco de desenvolvimento confirmou RLS nas dez tabelas iniciais e ausência de UPDATE direto por authenticated. Funções privadas SECURITY DEFINER, search_path vazio e execução restrita evitam recursão e vazamento. As políticas limitam leituras a tenants ativos; profiles é visível para si ou parceiros ativos. A RPC de mascote foi verificada com perfis sintéticos. O teste dinâmico completo de isolamento ainda está pendente.
 
 **A migração desta sprint bloqueia todas as escritas de negócio de anon/authenticated.** É uma base deliberadamente fechada: não liberar políticas de escrita genéricas antes de construir RPCs transacionais. A autorização individual/conjunta está implementada e testada no domínio da demonstração; ainda não é um fluxo real de persistência. Futuras RPCs devem validar membership ativo, dono de registro individual, escopo das duas contas de uma transferência, responsável e vínculo de contribuição. Tabelas de auditoria são somente leitura ao cliente; gatilhos capturam mutações de lançamentos, contribuições e recompensas. A identidade do ator é auth.uid(), não um campo fornecido pelo cliente. Ações administrativas sem JWT têm actor_id nulo; uma camada operacional deverá registrar o operador e o motivo.
 
-O incremento de seleção de mascote terá uma operação específica para a preferência do próprio perfil, conforme a seção abaixo. Isso não libera atualização genérica de profiles nem qualquer escrita financeira, de inventário ou de recompensas pelo cliente.
+O incremento de seleção de mascote expõe uma operação específica para a preferência do próprio perfil, conforme a seção abaixo. Isso não libera atualização genérica de profiles nem qualquer escrita financeira, de inventário ou de recompensas pelo cliente.
 
 O bootstrap de perfis/casais e a edição de dados reais estão fora da UI. Não usar service_role no navegador nem em variável NEXT_PUBLIC_. Segurança de aplicação e segurança SQL são complementares; os testes puros não provam RLS. Testes SQL devem passar em Supabase descartável antes de qualquer uso com dinheiro real.
 
@@ -77,15 +77,17 @@ Motor puro em domain/rewards.ts é um esboço configurável com XP/moedas e dedu
 
 ### Modelo mínimo e evolução da migração
 
-A migração `202610210001_foundation.sql` já armazena a escolha em `profiles.mascot`, vinculada ao usuário, mas restringe valores com CHECK a `cat` e `dog` e não permite atualização autenticada. Esse é o estado existente, não a conclusão do novo requisito. Preservar a migração entregue e adicionar uma migração incremental, após validação no Supabase de desenvolvimento:
+A migração `202610210001_foundation.sql` armazena a escolha em `profiles.mascot`, vinculada ao usuário. `202610210002_mascot_species.sql` adiciona o catálogo e a função restrita `select_mascot(text)`, preservando a coluna e valores atuais. Ambas foram aplicadas ao projeto Supabase de desenvolvimento. O lint do schema passou; um smoke test sintético confirmou escolha independente, espécie igual para dois perfis e rejeição de espécie desconhecida. Login de usuário e teste completo das políticas ainda não foram executados.
 
-1. Criar `mascot_species` com `id text primary key` (código estável), `display_name` e `is_selectable`; cadastrar `cat` e `dog` como dados de referência, sem perfis de usuário fictícios.
-2. Manter o nome `profiles.mascot` para preservar dados e consumidores; substituir o CHECK fechado por FK para `mascot_species.id`, com exclusão de espécies referenciadas bloqueada. Não adicionar unicidade em mascot: vários usuários podem escolher a mesma espécie.
-3. Preservar todas as escolhas existentes. Defaults de Pessoa A/gato e Letícia/cachorro serão dados explícitos do onboarding inicial, nunca uma regra baseada no nome ou gênero. Usuários futuros escolhem uma espécie disponível.
-4. Proteger catálogo com RLS: leitura autenticada de metadados de espécie, sem escrita por usuários comuns. O catálogo não contém dados pessoais; sua leitura não amplia o acesso a profiles ou relacionamentos. Desativar uma espécie impede novas seleções, sem apagar a escolha existente ou seu renderer.
-5. Adicionar uma operação restrita de seleção, com ator derivado de `auth.uid()`, sem aceitar um user_id arbitrário. Não conceder UPDATE geral em profiles. A implementação deve manter as políticas de leitura atuais e limitar qualquer elevação de privilégio ao campo mascot do próprio perfil.
+O arquivo incremental:
 
-Essas alterações são especificação do próximo incremento, ainda não um arquivo SQL aplicado. A validação PostgreSQL continua pendente. Não alterar contas, lançamentos, contribuições, reward_events ou suas permissões para habilitar uma preferência visual.
+1. Criar `mascot_species` com código estável, nome de exibição e indicador de seleção; cadastrar gato e cachorro sem perfis fictícios.
+2. Manter `profiles.mascot` para preservar a escolha existente e substituir o CHECK por FK, impedindo apagar espécies usadas. Não restringir unicidade; ambos podem usar a mesma espécie.
+3. Expor somente leitura autenticada ao catálogo. Escrita do catálogo fica administrativa. Espécie desativada não pode ser escolhida, mas a escolha já salva e o renderer permanecem.
+4. Expor `select_mascot(text)`, que deriva a identidade de `auth.uid()`, valida catálogo e altera somente a linha do perfil autenticado. Não conceder UPDATE geral em profiles.
+5. Manter os defaults do onboarding como escolhas explícitas de Pessoa A/gato e Letícia/cachorro, nunca inferidos pelo nome. Preservar escolhas já gravadas.
+
+Essa migração não altera contas, lançamentos, contribuições, reward_events ou suas permissões. A escrita de preferência de mascote é isolada em RPC; nenhuma escrita financeira é liberada.
 
 ### Identidade e invariantes de progressão
 
@@ -115,7 +117,7 @@ Testar ambas as espécies para cada usuário, duas pessoas com a mesma espécie,
 
 ## Autenticação e Realtime
 
-Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor para proteger /conta. Login por e-mail/senha e saída preparados; nenhuma conta criada implicitamente. Respostas de autenticação são privadas, sem cache público. Cadastro, convite, confirmação e recuperação são próximos passos. Migração adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e tratamento de reconexão ficam para a etapa de persistência. Nunca usar Realtime como fonte de autorização.
+Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor para proteger /conta. Login por e-mail/senha está preparado; cadastro público está desativado local e remotamente, e novas contas serão criadas por convite depois de receber os dois e-mails. Confirmação de e-mail está habilitada; localmente, os links podem ser vistos no Mailpit. Nenhuma conta foi criada ainda. Respostas de autenticação são privadas, sem cache público. Recuperação de acesso e onboarding do relacionamento continuam pendentes. A migração adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e tratamento de reconexão ficam para a etapa de persistência. O serviço Realtime não é iniciado no stack local leve nesta sprint. Nunca usar Realtime como fonte de autorização.
 
 ## PWA, acessibilidade e interface
 

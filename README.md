@@ -10,7 +10,8 @@ Requer Node.js 24 LTS e npm. Ambiente inicial: Node 24.21.0 e npm 11.19.0.
 
 ```bash
 npm ci
-cp .env.example .env.local
+# Neste ambiente, a CLI já preencheu .env.local para o Supabase de desenvolvimento.
+# Só copie o exemplo se o arquivo ainda não existir e você for usar apenas a demonstração.
 npm run dev
 ```
 
@@ -28,19 +29,27 @@ O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões 
 
 ## Supabase de desenvolvimento
 
-1. Criar um projeto de desenvolvimento ou usar a CLI Supabase com Docker (`supabase init` e `supabase start`; configuração local não fornecida nesta sprint).
-2. Copiar a Project URL e a **publishable key** para `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` em `.env.local`.
-3. Não utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nessas variáveis. `.env.local` é ignorado pelo Git.
-4. Aplicar `supabase/migrations/202610210001_foundation.sql` via SQL Editor do projeto de desenvolvimento ou `supabase db reset` no ambiente local. Não aplicar primeiro em produção.
-5. Criar manualmente duas contas de teste no Auth do Supabase. Não há cadastro/onboarding pela interface nesta sprint. Não inserir dados reais.
-6. Reiniciar Next.js. Abrir `/entrar` para login por e-mail/senha. `/conta` valida o usuário no servidor e permite sair. A UI financeira permanece fictícia.
-7. Executar o teste SQL em instalação LOCAL descartável com `psql` e a conexão local retornada pela CLI:
+1. Este repositório já está vinculado a um projeto separado de desenvolvimento, criado pela CLI em São Paulo. Para criar outro ambiente, use uma organização Supabase e projeto exclusivamente de desenvolvimento.
+2. A configuração local da CLI está em `supabase/config.toml`. Para vincular outro projeto, autentique com `npx supabase login` e use `npx supabase link --project-ref SEU_PROJECT_REF`. Não coloque senha do banco no repositório.
+3. Para aplicar migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
+4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
+5. Cadastros públicos estão desativados: o acesso será por convite para vocês dois. Ainda não existem contas porque os e-mails serão fornecidos depois. Para abrir e-mails de convite local, use Mailpit em http://127.0.0.1:54324.
+6. Abrir `/entrar` para login por e-mail/senha. `/conta` valida o usuário no servidor e permite sair. A UI financeira permanece fictícia. A escolha do mascote ainda não tem seletor de interface.
+7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
 ```bash
-psql "$SUPABASE_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/isolation.sql
+npx supabase start --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 ```
 
-Definir `SUPABASE_TEST_DATABASE_URL` apenas no shell local, sem versionar a senha. O teste usa fixtures sintéticas e rollback. A migração bloqueia escritas de negócio para clientes; onboarding, comandos transacionais, assinatura Realtime e persistência da UI ficam para a Sprint 02. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
+O endpoint local é `http://127.0.0.1:54321`; Postgres fica em `127.0.0.1:54322`. Pare sem apagar os dados com `npx supabase stop`.
+
+8. Execute o teste SQL em instalação LOCAL descartável dentro do container Postgres:
+
+```bash
+docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/isolation.sql
+```
+
+O teste usa fixtures sintéticas e rollback. A migração bloqueia escritas financeiras de clientes; onboarding, comandos transacionais, assinatura Realtime e persistência da UI ficam para as próximas sprints. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
 
 ## Validar
 

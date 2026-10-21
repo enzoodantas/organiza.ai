@@ -12,14 +12,15 @@ Incorporado à Sprint 01 sem reiniciar o projeto. A seleção simples deve ser i
 
 - [x] Documentar escolhas iniciais alteráveis, espécies iguais permitidas e preferência vinculada ao usuário.
 - [x] Definir catálogo extensível e separação entre espécie, identidade, progressão, inventário e equipamentos.
-- [ ] Preparar migração incremental de catálogo/FK que preserve `profiles.mascot` e as escolhas existentes.
-- [ ] Implementar seleção restrita ao próprio usuário e testá-la no Supabase de desenvolvimento; não liberar escritas financeiras.
+- [x] Preparar migração incremental `202610210002_mascot_species.sql` com catálogo `cat`/`dog`, FK preservando `profiles.mascot` e RPC que só seleciona a espécie do usuário autenticado.
+- [x] Aplicar `202610210001_foundation.sql` e `202610210002_mascot_species.sql` no projeto Supabase de desenvolvimento; validar lint, RLS/grants e smoke test da RPC com usuários sintéticos.
+- [ ] Completar o teste SQL de isolamento para parceiro, outro casal, membro revogado, anônimo e tentativas de escrita; a suíte atual está restrita a Supabase local descartável.
 - [ ] Adicionar seletor simples entre gato e cachorro, com carregamento, erro e confirmação após persistência.
 - [ ] Centralizar leitura da seleção e adaptar mascotes/descrições acessíveis em dashboard, desafios, perfil e demais áreas do RPG, eliminando associações fixas por participante.
 - [ ] Validar persistência entre sessões, espécies iguais, isolamento de usuários e regressão dos fluxos concluídos.
 - [ ] Quando progressão/equipamentos existirem, comprovar que a troca preserva XP, nível, moedas, conquistas e propriedade dos itens; apenas desequipa os incompatíveis na mesma transação.
 
-Estado: planejamento e arquitetura atualizados; seleção na aplicação e persistência autenticada ainda pendentes. A entrega anterior continua funcionando em demonstração com as escolhas iniciais. Este incremento não inclui editor complexo, novas espécies visuais ou implementação antecipada do inventário. Executar a seleção simples após configurar/validar o Supabase, sem iniciar os demais sistemas de RPG.
+Estado: banco de desenvolvimento configurado pela CLI; catálogo e RPC aplicados e smoke-tested. Seleção na aplicação ainda pendente. A entrega continua funcionando em demonstração com as escolhas iniciais. Este incremento não inclui editor complexo, novas espécies visuais ou implementação antecipada do inventário. Implementar o seletor simples sem iniciar os demais sistemas de RPG.
 
 ### Registro de entrega e ponto de retomada — 21/10/2026
 
@@ -32,9 +33,11 @@ Estado entregue: cinco áreas responsivas, mascotes originais, movimentações e
 Pendências, em ordem de execução:
 
 - [ ] Revisar a demonstração com o casal quando houver disponibilidade; confirmar se a navegação e os resumos ajudam a entender e organizar o dinheiro.
-- [ ] Configurar um Supabase de desenvolvimento com variáveis reais apenas em `.env.local`, seguindo o README; nenhuma credencial foi criada nesta entrega.
-- [ ] Aplicar a migração em ambiente descartável e executar `supabase/tests/isolation.sql`; RLS e gatilhos ainda não foram testados em PostgreSQL.
-- [ ] Testar login, renovação de sessão e saída contra Supabase; concluir onboarding, confirmação e recuperação de acesso.
+- [x] Criar organização e projeto Supabase de desenvolvimento via CLI; vincular o repositório e configurar URL/publishable key apenas em `.env.local` local.
+- [x] Aplicar as duas migrations via `supabase db push`; histórico remoto conferido e `db lint --linked` sem erros.
+- [x] Instalar Docker rootless, subir Supabase local enxuto e validar migrations/lint e isolamento SQL com rollback.
+- [x] Desativar cadastro público e alinhar URLs de retorno local nas configurações Auth locais/remotas.
+- [ ] Depois de receber os e-mails, convidar somente os dois usuários e validar login, renovação de sessão e saída; concluir onboarding, confirmação e recuperação de acesso.
 - [ ] Definir convite e consentimento de ambos, limite de participantes ativos e comportamento ao revogar um vínculo.
 - [ ] Implementar RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no servidor/banco e auditoria.
 - [ ] Validar saldo livre por conta, centavos, escopos, idempotência e concorrência. Manter as escritas reais bloqueadas até essas verificações passarem.
