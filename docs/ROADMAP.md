@@ -6,6 +6,21 @@
 
 ## Sprint 01 — Fundação
 
+### Incremento de requisito — escolha de espécie do mascote
+
+Incorporado à Sprint 01 sem reiniciar o projeto. A seleção simples deve ser individual, persistente e independente da progressão. Pessoa A começa com gato e Letícia com cachorro; ambos podem trocar e usar a mesma espécie. Regras completas e aceite em [PRD.md](PRD.md); modelo, migração incremental e operação em [ARCHITECTURE.md](ARCHITECTURE.md).
+
+- [x] Documentar escolhas iniciais alteráveis, espécies iguais permitidas e preferência vinculada ao usuário.
+- [x] Definir catálogo extensível e separação entre espécie, identidade, progressão, inventário e equipamentos.
+- [ ] Preparar migração incremental de catálogo/FK que preserve `profiles.mascot` e as escolhas existentes.
+- [ ] Implementar seleção restrita ao próprio usuário e testá-la no Supabase de desenvolvimento; não liberar escritas financeiras.
+- [ ] Adicionar seletor simples entre gato e cachorro, com carregamento, erro e confirmação após persistência.
+- [ ] Centralizar leitura da seleção e adaptar mascotes/descrições acessíveis em dashboard, desafios, perfil e demais áreas do RPG, eliminando associações fixas por participante.
+- [ ] Validar persistência entre sessões, espécies iguais, isolamento de usuários e regressão dos fluxos concluídos.
+- [ ] Quando progressão/equipamentos existirem, comprovar que a troca preserva XP, nível, moedas, conquistas e propriedade dos itens; apenas desequipa os incompatíveis na mesma transação.
+
+Estado: planejamento e arquitetura atualizados; seleção na aplicação e persistência autenticada ainda pendentes. A entrega anterior continua funcionando em demonstração com as escolhas iniciais. Este incremento não inclui editor complexo, novas espécies visuais ou implementação antecipada do inventário. Executar a seleção simples após configurar/validar o Supabase, sem iniciar os demais sistemas de RPG.
+
 ### Registro de entrega e ponto de retomada — 21/10/2026
 
 A fundação foi implementada e validada localmente. O usuário solicitou registrar as pendências e enviar a entrega para `main`, deixando a revisão visual para depois. O envio do código não representa publicação do aplicativo nem ativação de dados reais.
@@ -42,7 +57,7 @@ Ordem de implementação acordada:
 7. Preparar regras independentes de recompensa e porta de IA sem APIs pagas.
 8. Executar verificações e registrar evidências e pendências em VALIDATION.md.
 
-Entregas: documentação, app local, modo demo, infraestrutura de dados fechada para escrita, autenticação preparada e testes. Não inclui produto financeiro pronto para produção, persistência financeira, API de IA, economia virtual ou personalização de personagens.
+Entregas da fundação já validada: documentação, app local, modo demo, infraestrutura de dados fechada para escrita, autenticação preparada e testes. A seleção simples e persistente de espécie foi adicionada como incremento pendente da Sprint 01. Não inclui produto financeiro pronto para produção, persistência financeira, API de IA, economia virtual ou criação complexa de personagens.
 
 ## Sprint 02 — Primeiro fluxo real e seguro
 

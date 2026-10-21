@@ -35,7 +35,8 @@ Destino: formulário manual ou proposta de IA confirmada → comando de aplicaç
 
 | Tabela | Responsabilidade e relações |
 | --- | --- |
-| profiles | Identidade financeira mínima; PK vinculada a auth.users; nome e tipo de mascote |
+| profiles | Identidade financeira mínima; PK vinculada a auth.users; nome e espécie selecionada individualmente em mascot |
+| mascot_species (incremento planejado) | Catálogo extensível; chave estável cat/dog, nome de exibição e disponibilidade para seleção; será referenciado por profiles.mascot |
 | relationships | Tenant financeiro; múltiplos casais por instalação |
 | relationship_members | N:N entre perfil e relacionamento; datas de entrada e revogação |
 | accounts | Conta individual (owner obrigatório) ou conjunta (owner nulo); BRL |
@@ -55,6 +56,8 @@ RLS habilitada em todas as tabelas. Funções privadas SECURITY DEFINER, search_
 
 **A migração desta sprint bloqueia todas as escritas de negócio de anon/authenticated.** É uma base deliberadamente fechada: não liberar políticas de escrita genéricas antes de construir RPCs transacionais. A autorização individual/conjunta está implementada e testada no domínio da demonstração; ainda não é um fluxo real de persistência. Futuras RPCs devem validar membership ativo, dono de registro individual, escopo das duas contas de uma transferência, responsável e vínculo de contribuição. Tabelas de auditoria são somente leitura ao cliente; gatilhos capturam mutações de lançamentos, contribuições e recompensas. A identidade do ator é auth.uid(), não um campo fornecido pelo cliente. Ações administrativas sem JWT têm actor_id nulo; uma camada operacional deverá registrar o operador e o motivo.
 
+O incremento de seleção de mascote terá uma operação específica para a preferência do próprio perfil, conforme a seção abaixo. Isso não libera atualização genérica de profiles nem qualquer escrita financeira, de inventário ou de recompensas pelo cliente.
+
 O bootstrap de perfis/casais e a edição de dados reais estão fora da UI. Não usar service_role no navegador nem em variável NEXT_PUBLIC_. Segurança de aplicação e segurança SQL são complementares; os testes puros não provam RLS. Testes SQL devem passar em Supabase descartável antes de qualquer uso com dinheiro real.
 
 ## Contabilidade e campanhas
@@ -69,6 +72,46 @@ O bootstrap de perfis/casais e a edição de dados reais estão fora da UI. Não
 ## Gamificação independente
 
 Motor puro em domain/rewards.ts é um esboço configurável com XP/moedas e deduplicação por chave. A persistência futura deve derivar a chave canônica no servidor e usar índice único/outbox para concorrência; chamar evaluateReward com UUIDs novos não constitui proteção por si só. Inventário, cosméticos, equipamentos, conquistas, missões individuais/conjuntas e cenários terão tabelas próprias quando forem implementados. Não criar modelos vazios e APIs fictícias para afirmar conclusão.
+
+## Espécie selecionada e progressão independente — incremento da Sprint 01
+
+### Modelo mínimo e evolução da migração
+
+A migração `202610210001_foundation.sql` já armazena a escolha em `profiles.mascot`, vinculada ao usuário, mas restringe valores com CHECK a `cat` e `dog` e não permite atualização autenticada. Esse é o estado existente, não a conclusão do novo requisito. Preservar a migração entregue e adicionar uma migração incremental, após validação no Supabase de desenvolvimento:
+
+1. Criar `mascot_species` com `id text primary key` (código estável), `display_name` e `is_selectable`; cadastrar `cat` e `dog` como dados de referência, sem perfis de usuário fictícios.
+2. Manter o nome `profiles.mascot` para preservar dados e consumidores; substituir o CHECK fechado por FK para `mascot_species.id`, com exclusão de espécies referenciadas bloqueada. Não adicionar unicidade em mascot: vários usuários podem escolher a mesma espécie.
+3. Preservar todas as escolhas existentes. Defaults de Pessoa A/gato e Letícia/cachorro serão dados explícitos do onboarding inicial, nunca uma regra baseada no nome ou gênero. Usuários futuros escolhem uma espécie disponível.
+4. Proteger catálogo com RLS: leitura autenticada de metadados de espécie, sem escrita por usuários comuns. O catálogo não contém dados pessoais; sua leitura não amplia o acesso a profiles ou relacionamentos. Desativar uma espécie impede novas seleções, sem apagar a escolha existente ou seu renderer.
+5. Adicionar uma operação restrita de seleção, com ator derivado de `auth.uid()`, sem aceitar um user_id arbitrário. Não conceder UPDATE geral em profiles. A implementação deve manter as políticas de leitura atuais e limitar qualquer elevação de privilégio ao campo mascot do próprio perfil.
+
+Essas alterações são especificação do próximo incremento, ainda não um arquivo SQL aplicado. A validação PostgreSQL continua pendente. Não alterar contas, lançamentos, contribuições, reward_events ou suas permissões para habilitar uma preferência visual.
+
+### Identidade e invariantes de progressão
+
+O personagem lógico pertence ao `user_id` estável. `mascot` é uma preferência de aparência; não é identificador do personagem nem chave de XP, nível, carteira virtual, conquistas ou inventário. O futuro agregado de progressão usará o usuário como identidade; eventos que já possuem contexto de relacionamento continuam nesse contexto ao trocar espécie. Nenhuma troca copia eventos entre relacionamentos ou recria sua origem canônica.
+
+O motor de recompensas não recebe espécie como critério de saldo/progressão. A seleção não produz XP/moedas e não apaga ou reprocessa histórico. Novas espécies exigem catálogo, assets/renderer e compatibilidades de itens, sem refatoração das regras de progressão.
+
+Ao implementar itens: `inventory` representa a propriedade estável por usuário; `equipment` representa o que está equipado por usuário/slot. Um catálogo de compatibilidade relacionará itens e espécies; itens universais devem ter uma regra explícita, sem listas deduzidas na UI. Item incompatível permanece no inventário e aparece como indisponível para equipar na espécie atual. Não usar exclusão em cascata da seleção para inventário, conquistas ou progressão.
+
+### Operação de seleção
+
+Contrato planejado: `selectMascot(speciesId)` altera apenas o perfil autenticado e, quando existir equipamento, as referências de equipamento incompatíveis. Requisições para uma espécie inexistente ou indisponível falham sem modificar a preferência anterior. Selecionar a espécie já ativa é uma operação sem efeito e sem recompensa.
+
+A operação deve bloquear o perfil e compartilhar o mesmo protocolo de bloqueio com equipar/desequipar; validar propriedade e compatibilidade no servidor/banco. Quando houver equipamentos, a mudança de espécie e o desequipamento dos incompatíveis acontecem na mesma transação. Uma falha desfaz ambas. Slots compatíveis permanecem, itens continuam no inventário e voltar à espécie anterior não os reequipa automaticamente. Nesta sprint não criar tabelas vazias de inventário para simular esse comportamento.
+
+### Consistência de apresentação
+
+Definir uma fonte única de perfis selecionados na camada de dados; componentes recebem usuário, nome e código da espécie. Dashboard, desafios, perfil e áreas do RPG não mantêm mapas próprios do tipo Pessoa A → gato ou Letícia → cachorro. Resolver a espécie em um registro de renderers por código; não usar o ramo `else` de gato como sinônimo de qualquer espécie futura. Espécie desconhecida ou renderer indisponível exibe estado neutro identificável, sem substituir silenciosamente pelo cachorro.
+
+A descrição acessível combina espécie e proprietário independentemente: um gato pode pertencer a Letícia e ambos podem usar cachorro. O componente atual `Mascot` e suas chamadas ainda têm associações fixas; sua adaptação será parte do incremento, mantendo o desenho original e os demais fluxos concluídos.
+
+Após confirmação da escrita, atualizar/invalidate a consulta de perfis compartilhada; todas as áreas usam o mesmo estado. Outras sessões e o parceiro autorizado recebem atualização por assinatura restrita ao perfil ou refetch no retorno/foco, a validar na integração. Não adicionar profiles inteiro à publicação Realtime sem revisar os dados expostos e a RLS. Erro conserva o estado confirmado; durante envio, indicar carregamento e impedir submissões conflitantes. Recarregar deve consultar o banco, não restaurar defaults ou depender de localStorage.
+
+### Validação exigida antes de concluir
+
+Testar ambas as espécies para cada usuário, duas pessoas com a mesma espécie, persistência após nova sessão, tentativa de alterar terceiro, catálogo inválido/inativo e erro de gravação. Na UI, verificar todas as áreas e nomes acessíveis após a troca. Quando existir progressão/inventário, comparar estado antes/depois de trocas repetidas, verificar propriedade preservada e desequipamento atômico sob concorrência. Até lá, manter os testes de regressão financeiros e registrar explicitamente que as garantias sobre esses sistemas futuros são contratos arquiteturais, não funcionalidades já testadas.
 
 ## Autenticação e Realtime
 

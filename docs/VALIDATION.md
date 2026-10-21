@@ -55,6 +55,8 @@ O script `supabase/tests/isolation.sql` prepara testes PostgreSQL com fixtures s
 
 ## Limites e próximo passo
 
+Atualização de requisito na Sprint 01: seleção individual de espécie incorporada ao PRD, arquitetura e roadmap. Esta atualização altera somente documentação. Catálogo/FK, operação de seleção persistente e seletor de UI ainda não foram implementados nem testados; as garantias de preservação de progressão/inventário são contratos para as respectivas implementações. O componente e as telas atuais ainda exibem os animais iniciais fixos. Os resultados de testes acima pertencem à fundação entregue e não comprovam a seleção personalizável. Para esta atualização documental, verificar consistência dos requisitos e `git diff --check`; não é necessário repetir build/testes de código inalterado.
+
 - Sem persistência financeira real, onboarding, convites, CRUD real de contas, transferências reais ou RPCs transacionais de aporte/reversão. A demonstração não gerencia saldo livre por conta.
 - Escritas reais deliberadamente bloqueadas. Não liberar grants/políticas de escrita antes de validar autorização, escopo, idempotência e concorrência nas operações de aplicação.
 - Sem distribuição de XP/moedas, níveis, inventário, missões, itens ou cenário evolutivo. Esboço de motor depende de chaves canônicas confiáveis e persistência transacional futura.

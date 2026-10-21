@@ -4,7 +4,7 @@
 
 **Existimos para ajudar na nossa vida financeira: entender o dinheiro, cuidar do presente e preparar o casamento e o futuro a dois.** O produto só faz sentido se reduzir a confusão, facilitar conversas e apoiar decisões reais. Gamificação, personagens e futura IA são meios de incentivar esse cuidado.
 
-Nome provisório: Nosso Futuro. Repositório originalmente chamado organiza.ai. Usuários iniciais: Pessoa A (gato) e Letícia (cachorrinho). Não presumir nome, renda, patrimônio ou prazo do casamento. Todos os valores fornecidos pela demonstração são fictícios.
+Nome provisório: Nosso Futuro. Repositório originalmente chamado organiza.ai. Escolhas iniciais de mascote: Pessoa A usa gato e Letícia usa cachorro. São preferências iniciais alteráveis, sem vínculo fixo entre espécie e identidade. Não presumir nome, renda, patrimônio ou prazo do casamento. Todos os valores fornecidos pela demonstração são fictícios.
 
 ## Problema e objetivos
 
@@ -32,7 +32,7 @@ Se essas respostas não forem claras, registrar no backlog, sem aumentar o escop
 | Início | Visão consolidada fictícia, progresso, personagens e comparação de receitas/despesas | Dados reais por período, contas e metas |
 | Finanças | Filtros individual/conjunto, registro e reversão em memória | Persistência, contas, transferências e conciliação |
 | Desafios | Grade 1–200, aporte, responsável, histórico, reversão e progresso em memória | Reserva real vinculada a conta e campanhas personalizadas |
-| Mascotes | Gato e cachorrinho originais, prévia identificada | XP, níveis, itens, missões, conquistas e cenário |
+| Mascotes | Prévia original; seleção individual persistente entre gato e cachorro incorporada ao escopo, ainda pendente | XP, níveis, itens, missões, conquistas e cenário |
 | Perfil | Troca de participante fictício para explorar permissões | Identidade real, vínculo, convites e configurações |
 | Conta | Login preparado, validação de usuário no servidor e saída | Onboarding completo e recuperação de conta |
 
@@ -57,6 +57,31 @@ O progresso conjunto soma os aportes ativos; o individual filtra o participante 
 Recompensar hábitos verificáveis, como primeira organização e revisão semanal; não o volume de dinheiro, o número indiscriminado de lançamentos ou a edição de um registro. Sem perda de XP por dificuldades financeiras. A regra de revisão semanal deverá usar chave canônica de usuário/relacionamento/semana; o evento de primeira movimentação deverá usar uma chave única de marco, nunca um UUID arbitrário fornecido pelo cliente.
 
 O motor recebe eventos de domínio confiáveis, consulta regras versionadas e produz recompensas idempotentes. Atualizações ou reenvios não criam eventos novos. Estornos terão eventos compensatórios e política explícita, sem apagar histórico. Níveis, moedas, cosméticos, inventário, equipamentos, missões, conquistas e cenário compartilhado são backlog; não há economia virtual ativa nesta sprint.
+
+## Seleção individual de mascote — ajuste da Sprint 01
+
+Cada usuário pode escolher e alterar livremente sua espécie entre gato e cachorro. Pessoa A começa com gato e Letícia com cachorro; ambos podem escolher a mesma espécie. Não há exclusividade por casal, gênero ou posição no relacionamento. A preferência pertence ao usuário e é a mesma em todos os seus contextos autorizados.
+
+A seleção deve ser persistida no perfil vinculado a `auth.users.id`. Só o próprio usuário pode alterá-la; a leitura pelo parceiro segue as permissões já existentes. Escolher novamente a espécie atual não altera estado, não concede recompensas e não gera custo ou limitação artificial.
+
+A troca é uma alteração de aparência: não recria o personagem nem modifica XP, nível, moedas virtuais, conquistas, inventário, eventos de recompensa ou dados financeiros. Itens exclusivos de uma espécie continuam pertencendo ao usuário quando ela muda. Equipamentos incompatíveis deixam de estar equipados, sem serem apagados do inventário; voltar à espécie anterior não reequipa itens automaticamente. Essas regras devem ser respeitadas quando inventário e equipamentos forem implementados.
+
+Dashboard, desafios, perfil, página de mascotes e demais áreas do RPG devem consumir a mesma seleção do perfil. A espécie não pode ser deduzida do nome, usuário, gênero ou participação no casal. A troca só é confirmada visualmente após persistência bem-sucedida; erro mantém a seleção anterior e oferece nova tentativa. Carregamento não deve exibir outro animal como se fosse a escolha salva.
+
+Novas espécies serão entradas de catálogo e ganharão representação visual, sem mudança no motor de progressão. Nesta sprint, o ajuste cobre o modelo extensível, a seleção simples e sua persistência quando o Supabase de desenvolvimento estiver configurado. Não inclui editor corporal, raças, criação complexa, novos itens, economia virtual ou espécies adicionais.
+
+Critérios de aceite do incremento:
+
+- [ ] Defaults do onboarding: Pessoa A com gato e Letícia com cachorro, sem sobrescrever preferências já salvas e sem inferência por nome/e-mail.
+- [ ] Cada pessoa alterna entre as duas espécies; combinações gato/gato e cachorro/cachorro são válidas.
+- [ ] A seleção permanece após recarregar, sair/entrar e abrir outra sessão autenticada.
+- [ ] Alteração do próprio perfil permitida; tentativa de alterar o parceiro ou outro casal negada no servidor/banco.
+- [ ] Todas as áreas exibem o animal salvo e o identificam com o nome do usuário correto, inclusive com espécies iguais.
+- [ ] Trocas repetidas e tentativas com erro não alteram progressão, recompensas ou propriedade de itens.
+- [ ] Ao existir equipamento: item incompatível é desequipado atomicamente, permanece no inventário e pode ser equipado novamente quando compatível.
+- [ ] Adicionar uma espécie de teste ao catálogo não exige alteração das regras de XP, níveis, moedas ou conquistas.
+
+Estado atual: requisito incorporado ao planejamento. A interface entregue ainda mostra os mascotes iniciais fixos; o seletor e sua integração persistente ainda não estão implementados. Não declarar esses critérios concluídos com base na demonstração em memória.
 
 ## IA e voz
 
