@@ -36,8 +36,8 @@ test("parceira vê dados individuais mas só altera os próprios", async ({ page
   await page.goto("/perfil");
   await page.getByLabel("Participante da demonstração").selectOption("b");
   await page.locator("nav:visible").getByRole("link", { name: "Finanças", exact: true }).click();
-  await expect(page.getByText("Receita de exemplo • Pessoa A", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Reverter Receita de exemplo • Pessoa A", exact: true })).toHaveCount(0);
+  await expect(page.getByText("Receita de exemplo • Enzo", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reverter Receita de exemplo • Enzo", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Reverter Receita de exemplo • Letícia", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reverter Moradia de exemplo", exact: true })).toBeVisible();
 });

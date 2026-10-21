@@ -4,7 +4,7 @@
 
 **Existimos para ajudar na nossa vida financeira: entender o dinheiro, cuidar do presente e preparar o casamento e o futuro a dois.** O produto só faz sentido se reduzir a confusão, facilitar conversas e apoiar decisões reais. Gamificação, personagens e futura IA são meios de incentivar esse cuidado.
 
-Nome provisório: Nosso Futuro. Repositório originalmente chamado organiza.ai. Escolhas iniciais de mascote: Pessoa A usa gato e Letícia usa cachorro. São preferências iniciais alteráveis, sem vínculo fixo entre espécie e identidade. Não presumir nome, renda, patrimônio ou prazo do casamento. Todos os valores fornecidos pela demonstração são fictícios.
+Nome provisório: Nosso Futuro. Repositório originalmente chamado organiza.ai. Escolhas iniciais de mascote: Enzo usa gato e Letícia usa cachorro. São preferências iniciais alteráveis, sem vínculo fixo entre espécie e identidade. Não presumir renda, patrimônio ou prazo do casamento. Todos os valores fornecidos pela demonstração são fictícios.
 
 ## Problema e objetivos
 
@@ -60,7 +60,7 @@ O motor recebe eventos de domínio confiáveis, consulta regras versionadas e pr
 
 ## Seleção individual de mascote — ajuste da Sprint 01
 
-Cada usuário pode escolher e alterar livremente sua espécie entre gato e cachorro. Pessoa A começa com gato e Letícia com cachorro; ambos podem escolher a mesma espécie. Não há exclusividade por casal, gênero ou posição no relacionamento. A preferência pertence ao usuário e é a mesma em todos os seus contextos autorizados.
+Cada usuário pode escolher e alterar livremente sua espécie entre gato e cachorro. Enzo começa com gato e Letícia com cachorro; ambos podem escolher a mesma espécie. Não há exclusividade por casal, gênero ou posição no relacionamento. A preferência pertence ao usuário e é a mesma em todos os seus contextos autorizados.
 
 A seleção deve ser persistida no perfil vinculado a `auth.users.id`. Só o próprio usuário pode alterá-la; a leitura pelo parceiro segue as permissões já existentes. Escolher novamente a espécie atual não altera estado, não concede recompensas e não gera custo ou limitação artificial.
 
@@ -72,7 +72,7 @@ Novas espécies serão entradas de catálogo e ganharão representação visual,
 
 Critérios de aceite do incremento:
 
-- [ ] Defaults do onboarding: Pessoa A com gato e Letícia com cachorro, sem sobrescrever preferências já salvas e sem inferência por nome/e-mail.
+- [ ] Defaults do onboarding: Enzo com gato e Letícia com cachorro, sem sobrescrever preferências já salvas e sem inferência por nome/e-mail.
 - [ ] Cada pessoa alterna entre as duas espécies; combinações gato/gato e cachorro/cachorro são válidas.
 - [ ] A seleção permanece após recarregar, sair/entrar e abrir outra sessão autenticada.
 - [ ] Alteração do próprio perfil permitida; tentativa de alterar o parceiro ou outro casal negada no servidor/banco.

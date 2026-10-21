@@ -8,7 +8,7 @@
 
 ### Incremento de requisito — escolha de espécie do mascote
 
-Incorporado à Sprint 01 sem reiniciar o projeto. A seleção simples deve ser individual, persistente e independente da progressão. Pessoa A começa com gato e Letícia com cachorro; ambos podem trocar e usar a mesma espécie. Regras completas e aceite em [PRD.md](PRD.md); modelo, migração incremental e operação em [ARCHITECTURE.md](ARCHITECTURE.md).
+Incorporado à Sprint 01 sem reiniciar o projeto. A seleção simples deve ser individual, persistente e independente da progressão. Enzo começa com gato e Letícia com cachorro; ambos podem trocar e usar a mesma espécie. Regras completas e aceite em [PRD.md](PRD.md); modelo, migração incremental e operação em [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - [x] Documentar escolhas iniciais alteráveis, espécies iguais permitidas e preferência vinculada ao usuário.
 - [x] Definir catálogo extensível e separação entre espécie, identidade, progressão, inventário e equipamentos.
@@ -37,9 +37,11 @@ Pendências, em ordem de execução:
 - [x] Aplicar as duas migrations via `supabase db push`; histórico remoto conferido e `db lint --linked` sem erros.
 - [x] Instalar Docker rootless, subir Supabase local enxuto e validar migrations/lint e isolamento SQL com rollback.
 - [x] Desativar cadastro público e alinhar URLs de retorno local nas configurações Auth locais/remotas.
-- [ ] Depois de receber os e-mails, convidar somente os dois usuários e validar login, renovação de sessão e saída; concluir onboarding, confirmação e recuperação de acesso.
+- [x] Criar convites locais somente para Enzo e Letícia; links aguardam aceitação no Mailpit e ainda não há perfis.
+- [ ] Validar login, renovação de sessão e saída após ambos aceitarem; concluir onboarding e recuperação de acesso.
 - [ ] Definir convite e consentimento de ambos, limite de participantes ativos e comportamento ao revogar um vínculo.
 - [ ] Implementar RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no servidor/banco e auditoria.
+- [ ] Após as RPCs e onboarding, importar de forma revisável os lançamentos do último mês a partir do extrato fornecido pelo casal; confirmar categorias, contas, duplicidades e totais antes de gravar.
 - [ ] Validar saldo livre por conta, centavos, escopos, idempotência e concorrência. Manter as escritas reais bloqueadas até essas verificações passarem.
 - [ ] Conectar a interface a dados persistidos, gerar tipos do banco e testar dois casais isolados, sem fallback silencioso para demonstração.
 - [ ] Ligar e validar as assinaturas Realtime após o fluxo persistente estar seguro.
@@ -47,7 +49,7 @@ Pendências, em ordem de execução:
 - [ ] Validar instalação PWA em celular físico; offline e sincronização ainda não estão implementados.
 - [ ] Evoluir recompensas, inventário, missões e cenário somente após validar a utilidade financeira básica. Voz/IA continuam futuras e sem API paga integrada.
 
-Decisões a confirmar no momento adequado: nome final do produto, nome da Pessoa A, contas e saldos iniciais, orçamento/data do casamento e política de retenção/exportação após saída do relacionamento. Não presumir essas informações na implementação.
+Decisões a confirmar no momento adequado: nome final do produto, contas e saldos iniciais, orçamento/data do casamento e política de retenção/exportação após saída do relacionamento. Não presumir essas informações na implementação.
 
 Ordem de implementação acordada:
 
@@ -101,7 +103,7 @@ Primeiro avaliar custo e privacidade. Implementar interpretação como proposta 
 
 ## Decisões abertas
 
-- Nome final, nome da Pessoa A, orçamento e data desejada para o casamento.
+- Nome final, orçamento e data desejada para o casamento.
 - Contas que serão controladas e tratamento de saldos iniciais.
 - Consentimento, revogação e histórico após término de relacionamento.
 - Regras de nível, XP e limite de recompensas, sem pressão por renda.

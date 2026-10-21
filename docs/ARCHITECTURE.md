@@ -85,7 +85,7 @@ O arquivo incremental:
 2. Manter `profiles.mascot` para preservar a escolha existente e substituir o CHECK por FK, impedindo apagar espécies usadas. Não restringir unicidade; ambos podem usar a mesma espécie.
 3. Expor somente leitura autenticada ao catálogo. Escrita do catálogo fica administrativa. Espécie desativada não pode ser escolhida, mas a escolha já salva e o renderer permanecem.
 4. Expor `select_mascot(text)`, que deriva a identidade de `auth.uid()`, valida catálogo e altera somente a linha do perfil autenticado. Não conceder UPDATE geral em profiles.
-5. Manter os defaults do onboarding como escolhas explícitas de Pessoa A/gato e Letícia/cachorro, nunca inferidos pelo nome. Preservar escolhas já gravadas.
+5. Manter os defaults do onboarding como escolhas explícitas de Enzo/gato e Letícia/cachorro, nunca inferidos pelo nome. Preservar escolhas já gravadas.
 
 Essa migração não altera contas, lançamentos, contribuições, reward_events ou suas permissões. A escrita de preferência de mascote é isolada em RPC; nenhuma escrita financeira é liberada.
 
@@ -105,7 +105,7 @@ A operação deve bloquear o perfil e compartilhar o mesmo protocolo de bloqueio
 
 ### Consistência de apresentação
 
-Definir uma fonte única de perfis selecionados na camada de dados; componentes recebem usuário, nome e código da espécie. Dashboard, desafios, perfil e áreas do RPG não mantêm mapas próprios do tipo Pessoa A → gato ou Letícia → cachorro. Resolver a espécie em um registro de renderers por código; não usar o ramo `else` de gato como sinônimo de qualquer espécie futura. Espécie desconhecida ou renderer indisponível exibe estado neutro identificável, sem substituir silenciosamente pelo cachorro.
+Definir uma fonte única de perfis selecionados na camada de dados; componentes recebem usuário, nome e código da espécie. Dashboard, desafios, perfil e áreas do RPG não mantêm mapas próprios do tipo Enzo → gato ou Letícia → cachorro. Resolver a espécie em um registro de renderers por código; não usar o ramo `else` de gato como sinônimo de qualquer espécie futura. Espécie desconhecida ou renderer indisponível exibe estado neutro identificável, sem substituir silenciosamente pelo cachorro.
 
 A descrição acessível combina espécie e proprietário independentemente: um gato pode pertencer a Letícia e ambos podem usar cachorro. O componente atual `Mascot` e suas chamadas ainda têm associações fixas; sua adaptação será parte do incremento, mantendo o desenho original e os demais fluxos concluídos.
 
@@ -117,7 +117,7 @@ Testar ambas as espécies para cada usuário, duas pessoas com a mesma espécie,
 
 ## Autenticação e Realtime
 
-Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor para proteger /conta. Login por e-mail/senha está preparado; cadastro público está desativado local e remotamente, e novas contas serão criadas por convite depois de receber os dois e-mails. Confirmação de e-mail está habilitada; localmente, os links podem ser vistos no Mailpit. Nenhuma conta foi criada ainda. Respostas de autenticação são privadas, sem cache público. Recuperação de acesso e onboarding do relacionamento continuam pendentes. A migração adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e tratamento de reconexão ficam para a etapa de persistência. O serviço Realtime não é iniciado no stack local leve nesta sprint. Nunca usar Realtime como fonte de autorização.
+Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor para proteger /conta. Login por e-mail/senha está preparado; cadastro público está desativado local e remotamente. Dois convites foram criados somente no Auth local para Enzo e Letícia e ainda aguardam aceitação; os links ficam no Mailpit local. Nenhum perfil ou vínculo financeiro foi provisionado ainda. Respostas de autenticação são privadas, sem cache público. Recuperação de acesso e onboarding do relacionamento continuam pendentes. A migração adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e tratamento de reconexão ficam para a etapa de persistência. O serviço Realtime não é iniciado no stack local leve nesta sprint. Nunca usar Realtime como fonte de autorização.
 
 ## PWA, acessibilidade e interface
 

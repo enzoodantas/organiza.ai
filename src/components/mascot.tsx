@@ -1,6 +1,6 @@
 export function Mascot({ animal, className = "" }: { animal: "cat" | "dog"; className?: string }) {
   const cat = animal === "cat";
-  return <svg viewBox="0 0 160 160" role="img" aria-label={cat ? "Mascote gato da Pessoa A" : "Mascote cachorrinho de Letícia"} className={className}>
+  return <svg viewBox="0 0 160 160" role="img" aria-label={cat ? "Mascote gato do Enzo" : "Mascote cachorrinho de Letícia"} className={className}>
     <ellipse cx="80" cy="144" rx="46" ry="7" fill="#d9dfcd" />
     <path d="M46 134 Q38 90 80 87 Q122 90 114 134Z" fill={cat ? "#d3b58d" : "#c9956a"} />
     <path d="M63 134V116M97 134V116" stroke="#967459" strokeWidth="3" strokeLinecap="round" />

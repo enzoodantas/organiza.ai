@@ -9,8 +9,8 @@ Data: 21/10/2026. Ambiente: Linux, Node 24.21.0, npm 11.19.0. Versões efetivas 
 | TypeScript strict (`npm run typecheck`) | Passou |
 | ESLint (`npm run lint`) | Passou, sem avisos de código |
 | Vitest (`npm test`) | 31 testes passaram, em 2 arquivos |
-| Produção (`npm run build`) | Passou; rotas geradas e /conta dinâmica |
-| Playwright com Chrome instalado | 10 testes passaram; projetos mobile e desktop |
+| Produção (`npx next build --webpack`) | Passou; rotas geradas e /conta dinâmica. `npm run build`/Turbopack não pôde abrir processo auxiliar neste ambiente |
+| Playwright com Chrome instalado | 10 testes passaram; projetos mobile e desktop, incluindo os nomes Enzo e Letícia |
 | Largura de 320 px | Cinco áreas sem rolagem horizontal, com movimento reduzido |
 | Manifest e ícones PNG | Respostas HTTP válidas verificadas no navegador |
 | `git diff --check` | Passou |
@@ -24,7 +24,7 @@ Data: 21/10/2026. Ambiente: Linux, Node 24.21.0, npm 11.19.0. Versões efetivas 
 | Supabase local | Stack mínima ativa (Postgres, Auth, REST, Kong e Mailpit); endpoints locais Auth/Mailpit responderam HTTP 200 |
 | Migrations e lint locais | Duas migrations aplicadas; `npx supabase db lint --local --fail-on error` sem erros |
 | Isolamento SQL local | `supabase/tests/isolation.sql` passou no container Postgres; fixtures foram revertidas pelo `ROLLBACK` |
-| Signup público / Auth de usuários | Cadastro público desativado na instância local e remota; ainda sem contas convidadas, portanto login real não testado |
+| Signup público / Auth de usuários | Cadastro público desativado na instância local e remota; dois convites locais criados para Enzo e Letícia, ainda não aceitos. Mailpit contém duas mensagens; login real ainda não testado |
 | Realtime local/remoto | Não executado; serviço local foi excluído para reduzir consumo e interface ainda não assina eventos |
 
 Comando de navegador usado neste ambiente:
@@ -60,16 +60,16 @@ App local com cinco áreas responsivas; dados fictícios em memória; receitas/d
 
 Projeto remoto de desenvolvimento criado pela CLI em `sa-east-1` (São Paulo), vinculado ao repositório; as duas migrations foram aplicadas e conferidas. A aplicação local aponta para o Supabase Docker em `http://127.0.0.1:54321`; os dados de acesso remoto e chaves administrativas locais ficam em `supabase/.env.local`, ignorado e com permissão restrita. O daemon Docker roda rootless e não concede acesso ao grupo `docker`.
 
-O lint local e remoto passou. O teste SQL local de dois tenants passou: leitura do parceiro, isolamento entre casais, perfil revogado, usuário anônimo, tentativas de forjar vínculo, escrita financeira e apagamento de auditoria; tudo foi revertido. O teste remoto de mascote e os grants/RLS também foram conferidos. Cadastros públicos estão desativados nas duas instâncias; a tela `/entrar` aceita e-mail/senha, mas ainda não foram criadas contas, pois os e-mails do casal serão fornecidos depois. Localmente, os e-mails de convite poderão ser abertos no Mailpit em `http://127.0.0.1:54324`.
+O lint local e remoto passou. O teste SQL local de dois tenants passou: leitura do parceiro, isolamento entre casais, perfil revogado, usuário anônimo, tentativas de forjar vínculo, escrita financeira e apagamento de auditoria; tudo foi revertido. O teste remoto de mascote e os grants/RLS também foram conferidos. Cadastros públicos estão desativados nas duas instâncias. Foram criados convites apenas no Auth local para os dois usuários autorizados; os links ficam no Mailpit em `http://127.0.0.1:54324` e ainda precisam ser aceitos. Os convites não foram enviados por serviço de e-mail externo. Perfis e relacionamento não foram provisionados, aguardando confirmação dos dois. Login real ainda não foi testado.
 
 ## Limites e próximo passo
 
 Atualização de requisito na Sprint 01: `202610210002_mascot_species.sql` foi aplicada no Supabase de desenvolvimento e a RPC passou smoke test sintético. Seletor da interface ainda não implementado; componentes e telas continuam exibindo os mascotes iniciais fixos. As garantias de preservação de progressão/inventário são contratos para sistemas futuros, não funcionalidades testadas. A validação de RPC não substitui o teste completo de isolamento SQL.
 
-- Sem persistência financeira real, onboarding de relacionamento, criação dos dois convites, CRUD real de contas, transferências reais ou RPCs transacionais de aporte/reversão. A demonstração não gerencia saldo livre por conta.
+- Sem persistência financeira real, onboarding de relacionamento, aceitação/validação dos dois convites, CRUD real de contas, transferências reais ou RPCs transacionais de aporte/reversão. A demonstração não gerencia saldo livre por conta.
 - Escritas reais deliberadamente bloqueadas. Não liberar grants/políticas de escrita antes de validar autorização, escopo, idempotência e concorrência nas operações de aplicação.
 - Sem distribuição de XP/moedas, níveis, inventário, missões, itens ou cenário evolutivo. Esboço de motor depende de chaves canônicas confiáveis e persistência transacional futura.
 - Sem voz, API de IA, assinaturas Realtime da interface, funcionamento offline, notificações ou teste de instalação em celular físico.
 - Autenticação configurada não muda a origem dos dados financeiros: todas as áreas seguem em demo com aviso persistente.
 
-Próxima entrega: receber os dois e-mails, criar os convites no Supabase local e validar login/sessão; depois implementar o seletor persistente de espécie e o primeiro fluxo financeiro com RPCs transacionais e auditoria.
+Próxima entrega: aceitar os convites locais e validar login/sessão; provisionar perfis e vínculo do casal com consentimento de ambos. Em seguida, implementar importação revisável do último mês sobre RPCs transacionais e auditoria. Nenhum arquivo de extrato foi recebido nesta tarefa e ainda não existe fluxo seguro para importar ou gravar lançamentos reais.
