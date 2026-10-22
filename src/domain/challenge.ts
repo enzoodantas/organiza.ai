@@ -8,5 +8,10 @@ export function contribute(current: Contribution[], number: number, participantI
   return { id, number, participantId, reversed: false, date };
 }
 export function challengeProgress(items: Contribution[], participantId?: string) {
-  return items.filter(c => !c.reversed && (!participantId || c.participantId === participantId)).reduce((sum, c) => sum + c.number * 100, 0);
+  return items.filter(c => !c.reversed && (!participantId || c.participantId === participantId)).reduce((sum, c) => {
+    if (!Number.isInteger(c.number) || c.number < 1 || c.number > 200) throw new Error("Histórico do desafio inválido.");
+    const next = sum + c.number * 100;
+    if (!Number.isSafeInteger(next)) throw new Error("Total do desafio fora do limite de precisão.");
+    return next;
+  }, 0);
 }

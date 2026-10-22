@@ -66,6 +66,8 @@ Entregas da fundação já validada: documentação, app local, modo demo, infra
 
 ## Sprint 02 — Primeiro fluxo real e seguro
 
+Revisão financeira de 22/10/2026: [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md). O banco agora valida a matemática da campanha 1–200, mas os números da interface continuam exclusivamente em memória e reiniciam no reload. Antes de persistir, falta definir saldo inicial, saldo por conta/livre, autorização de operações e concorrência nas RPCs.
+
 Pré-requisito: configurar Supabase de desenvolvimento e executar a migração e testes SQL.
 
 - Definir convite bilateral, limite de dois participantes ativos e regras de saída/retenção/exportação.

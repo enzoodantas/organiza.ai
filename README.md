@@ -2,7 +2,7 @@
 
 Fundação de uma plataforma de finanças pessoais e compartilhadas para casais, originalmente chamada **organiza.ai**. Nosso norte é ajudar na vida financeira e preparar o casamento. Mascotes e gamificação apoiarão hábitos saudáveis.
 
-**Sprint 01: demonstração funcional em memória + preparação da infraestrutura.** Não usar para registrar dinheiro real. Dados iniciais são fictícios, alterações não persistem após recarregar e autenticar não transforma a demonstração em produto real.
+**Sprint 01: demonstração funcional em memória + preparação da infraestrutura.** Não usar para registrar dinheiro real. Dados iniciais são fictícios, alterações não persistem após recarregar e autenticar não transforma a demonstração em produto real. A revisão de cálculos e persistência está em [docs/FINANCIAL_AUDIT.md](docs/FINANCIAL_AUDIT.md).
 
 ## Executar localmente
 
@@ -33,7 +33,7 @@ O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões 
 2. A configuração local da CLI está em `supabase/config.toml`. Para vincular outro projeto, autentique com `npx supabase login` e use `npx supabase link --project-ref SEU_PROJECT_REF`. Não coloque senha do banco no repositório.
 3. Para aplicar migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
 4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
-5. Cadastros públicos estão desativados: o acesso será por convite para vocês dois. Ainda não existem contas porque os e-mails serão fornecidos depois. Para abrir e-mails de convite local, use Mailpit em http://127.0.0.1:54324.
+5. Cadastros públicos estão desativados. Dois convites foram criados somente no Auth local e ainda aguardam aceitação; não há perfis nem relacionamento provisionados. Para abrir os e-mails de convite local, use Mailpit em http://127.0.0.1:54324.
 6. Abrir `/entrar` para login por e-mail/senha. `/conta` valida o usuário no servidor e permite sair. A UI financeira permanece fictícia. A escolha do mascote ainda não tem seletor de interface.
 7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
@@ -47,6 +47,7 @@ O endpoint local é `http://127.0.0.1:54321`; Postgres fica em `127.0.0.1:54322`
 
 ```bash
 docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/isolation.sql
+docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/campaign_integrity.sql
 ```
 
 O teste usa fixtures sintéticas e rollback. A migração bloqueia escritas financeiras de clientes; onboarding, comandos transacionais, assinatura Realtime e persistência da UI ficam para as próximas sprints. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).

@@ -18,7 +18,7 @@ src/
     supabase/           configuração e clientes browser/servidor
   proxy.ts              renovação de sessão nas rotas de autenticação
 supabase/
-  migrations/           tabelas, constraints, índices, RLS e auditoria
+  migrations/           tabelas, constraints, índices, RLS, auditoria e validação da campanha
   tests/                contrato SQL de isolamento para ambiente descartável
 tests/                  unitários, componentes e Playwright
 docs/                   requisitos, arquitetura, roadmap e validação
@@ -61,6 +61,8 @@ O incremento de seleção de mascote expõe uma operação específica para a pr
 O bootstrap de perfis/casais e a edição de dados reais estão fora da UI. Não usar service_role no navegador nem em variável NEXT_PUBLIC_. Segurança de aplicação e segurança SQL são complementares; os testes puros não provam RLS. Testes SQL devem passar em Supabase descartável antes de qualquer uso com dinheiro real.
 
 ## Contabilidade e campanhas
+
+A auditoria detalhada de cálculos, persistência e lacunas para dinheiro real está em [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md). A migração `202610220001_campaign_integrity.sql` foi aplicada localmente e ao projeto remoto de desenvolvimento: valida regra de grade, meta, número e valor de aportes, e impede alteração das regras após haver histórico. Ainda não há RPC financeira ou vínculo entre a UI e essas tabelas.
 
 - Receita: destino obrigatório; despesa: origem obrigatória; transferência: ambas diferentes, no mesmo tenant. Uma transferência gera um único evento com duas pontas na mesma transação e nunca entra nas somas de receitas/despesas.
 - Saldo consolidado = receitas ativas − despesas ativas, incluindo saldos iniciais que terão estratégia de migração definida na Sprint 02.

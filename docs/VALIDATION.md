@@ -1,5 +1,9 @@
 # Validação — Sprint 01
 
+## Revisão financeira de 22/10/2026
+
+Ver [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md) para o estado da memória financeira, cálculos e pendências antes do uso real. A migração `202610220001_campaign_integrity.sql` foi aplicada localmente e ao Supabase remoto de desenvolvimento; teste SQL transacional local passou com rollback e `db lint --linked --fail-on error` não encontrou erros. TypeScript, lint, 32 testes Vitest, build Next/Webpack, 10 cenários Playwright em desktop/mobile e `git diff --check` passaram nesta revisão. A grade 1–200 agora permite escolher um número por clique ou teclado, mas segue em demonstração sem persistência.
+
 Data: 21/10/2026. Ambiente: Linux, Node 24.21.0, npm 11.19.0. Versões efetivas registradas em package-lock.json.
 
 ## Resultado verificável

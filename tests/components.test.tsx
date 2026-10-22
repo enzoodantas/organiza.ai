@@ -19,6 +19,8 @@ describe("fluxos críticos da demonstração", () => {
   });
   it("bloqueia aporte duplicado e atualiza progresso sem alterar receitas", () => {
     render(<DemoProvider><ChallengeView /></DemoProvider>);
+    fireEvent.click(screen.getByRole("button", { name: "1 reais: selecionar" }));
+    expect(screen.getByLabelText("Número de 1 a 200")).toHaveValue(1);
     fireEvent.change(screen.getByLabelText("Número de 1 a 200"), { target: { value: "20" } });
     fireEvent.click(screen.getByRole("button", { name: "Registrar aporte fictício" }));
     expect(screen.getByRole("alert")).toHaveTextContent("já recebeu");
@@ -26,5 +28,6 @@ describe("fluxos críticos da demonstração", () => {
     fireEvent.click(screen.getByRole("button", { name: "Registrar aporte fictício" }));
     expect(screen.getByRole("status")).toHaveTextContent("registrado");
     expect(screen.getByText("9/200 números")).toBeVisible();
+    expect(screen.getByRole("button", { name: "1 reais: preenchido" })).toBeDisabled();
   });
 });
