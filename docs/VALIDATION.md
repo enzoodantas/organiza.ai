@@ -1,5 +1,9 @@
 # Validação — Sprint 01
 
+## Onboarding local — 22/10/2026
+
+A migração `202610220002_onboarding.sql` foi aplicada somente ao Supabase local. TypeScript, ESLint, `git diff --check` e `db lint --local --fail-on error` passaram. Consultas com os papéis autenticados mostraram: Enzo vê seu perfil, o espaço e seu próprio vínculo; Letícia vê seu perfil e o convite recebido, mas nenhum relacionamento ou membro antes do aceite. Ambos não têm escrita direta em `financial_entries` nem leitura direta na tabela de convites. O banco local contém dois perfis, um relacionamento com apenas Enzo e um convite pendente para Letícia. O aceite real pela conta dela e a verificação de login/saída pela interface permanecem pendentes. Nenhum teste de suíte foi acrescentado ou executado nesta etapa.
+
 ## Revisão financeira de 22/10/2026
 
 Ver [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md) para o estado da memória financeira, cálculos e pendências antes do uso real. A migração `202610220001_campaign_integrity.sql` foi aplicada localmente e ao Supabase remoto de desenvolvimento; teste SQL transacional local passou com rollback e `db lint --linked --fail-on error` não encontrou erros. TypeScript, lint, 32 testes Vitest, build Next/Webpack, 10 cenários Playwright em desktop/mobile e `git diff --check` passaram nesta revisão. A grade 1–200 agora permite escolher um número por clique ou teclado, mas segue em demonstração sem persistência.

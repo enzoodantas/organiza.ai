@@ -37,9 +37,10 @@ Pendências, em ordem de execução:
 - [x] Aplicar as duas migrations via `supabase db push`; histórico remoto conferido e `db lint --linked` sem erros.
 - [x] Instalar Docker rootless, subir Supabase local enxuto e validar migrations/lint e isolamento SQL com rollback.
 - [x] Desativar cadastro público e alinhar URLs de retorno local nas configurações Auth locais/remotas.
-- [x] Criar convites locais somente para Enzo e Letícia; links aguardam aceitação no Mailpit e ainda não há perfis.
-- [ ] Validar login, renovação de sessão e saída após ambos aceitarem; concluir onboarding e recuperação de acesso.
-- [ ] Definir convite e consentimento de ambos, limite de participantes ativos e comportamento ao revogar um vínculo.
+- [x] Criar convites locais somente para Enzo e Letícia; ambas as contas foram autenticadas e os perfis provisionados localmente.
+- [ ] Concluir aceite de Letícia em `/conta`, validar renovação de sessão e saída de ambas; recuperação de acesso por e-mail ainda pendente.
+- [x] Implementar convite de vínculo e aceite/recusa pela própria conta, com limite de dois participantes ativos nas operações expostas.
+- [ ] Definir e implementar saída/revogação de vínculo, retenção e exportação do histórico.
 - [ ] Implementar RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no servidor/banco e auditoria.
 - [ ] Após as RPCs e onboarding, importar de forma revisável os lançamentos do último mês a partir do extrato fornecido pelo casal; confirmar categorias, contas, duplicidades e totais antes de gravar.
 - [ ] Validar saldo livre por conta, centavos, escopos, idempotência e concorrência. Manter as escritas reais bloqueadas até essas verificações passarem.

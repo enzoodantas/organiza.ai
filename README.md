@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Abrir http://127.0.0.1:3000. Variáveis podem permanecer vazias para explorar a demonstração. Não é necessário contratar serviço ou fornecer credenciais para esse modo. Para produção local: `npm run build` e `npm start`.
+Abrir http://localhost:3000, especialmente para autenticação (o mesmo host deve ser usado em todo o fluxo). Variáveis podem permanecer vazias para explorar a demonstração. Não é necessário contratar serviço ou fornecer credenciais para esse modo. Para produção local: `npm run build` e `npm start`.
 
 ## O que experimentar
 
@@ -33,8 +33,8 @@ O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões 
 2. A configuração local da CLI está em `supabase/config.toml`. Para vincular outro projeto, autentique com `npx supabase login` e use `npx supabase link --project-ref SEU_PROJECT_REF`. Não coloque senha do banco no repositório.
 3. Para aplicar migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
 4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
-5. Cadastros públicos estão desativados. Dois convites foram criados somente no Auth local e ainda aguardam aceitação; não há perfis nem relacionamento provisionados. Para abrir os e-mails de convite local, use Mailpit em http://127.0.0.1:54324.
-6. Abrir `/entrar` para login por e-mail/senha. `/conta` valida o usuário no servidor e permite sair. A UI financeira permanece fictícia. A escolha do mascote ainda não tem seletor de interface.
+5. Cadastros públicos estão desativados. As duas contas existem somente no Auth local. Perfis Enzo/gato e Letícia/cachorro foram provisionados localmente; o espaço “Nosso Futuro” contém Enzo e um convite de vínculo pendente para Letícia. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
+6. `/entrar` permite login por e-mail/senha. Em `/conta`, cada pessoa vê o próprio perfil; Letícia pode aceitar ou recusar o vínculo na própria sessão. O convite de vínculo expira em 30 dias. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo. A UI financeira permanece fictícia; nenhum lançamento ou aporte real é escrito pelo onboarding.
 7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
 ```bash
@@ -50,7 +50,7 @@ docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR
 docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/campaign_integrity.sql
 ```
 
-O teste usa fixtures sintéticas e rollback. A migração bloqueia escritas financeiras de clientes; onboarding, comandos transacionais, assinatura Realtime e persistência da UI ficam para as próximas sprints. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
+O teste usa fixtures sintéticas e rollback. As migrações continuam bloqueando escritas financeiras de clientes; o onboarding por RPC foi liberado, mas comandos financeiros transacionais, assinatura Realtime e persistência da UI financeira ficam para as próximas etapas. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
 
 ## Validar
 
