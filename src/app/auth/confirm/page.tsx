@@ -15,7 +15,7 @@ export default async function Page({ searchParams }: {
     <section className="panel max-w-lg">
       {valid ? <ConfirmInvitationForm tokenHash={tokenHash} type={type} /> : <>
         <h2>Link inválido</h2>
-        <p className="muted mt-3">Abra o link completo do convite ou solicite um novo.</p>
+        <p className="muted mt-3">Abra o link completo do convite ou da recuperação, ou solicite um novo.</p>
       </>}
     </section>
   </>;

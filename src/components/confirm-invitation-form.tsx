@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 
@@ -9,7 +8,6 @@ export function ConfirmInvitationForm({ tokenHash, type }: {
   tokenHash: string;
   type: "invite" | "recovery";
 }) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,8 +25,7 @@ export function ConfirmInvitationForm({ tokenHash, type }: {
         setError("Este link já foi usado ou expirou. Solicite um novo link.");
         return;
       }
-      router.replace("/convite");
-      router.refresh();
+      window.location.replace(type === "recovery" ? "/nova-senha" : "/convite");
     } catch {
       setError("Não foi possível conectar ao serviço de autenticação.");
     } finally {
@@ -37,8 +34,8 @@ export function ConfirmInvitationForm({ tokenHash, type }: {
   }
 
   return <>
-    <h2>Definir acesso</h2>
-    <p className="muted mt-3">Confirme este link para criar sua senha. Abrir a página não consome o link.</p>
+    <h2>{type === "recovery" ? "Recuperar senha" : "Definir acesso"}</h2>
+    <p className="muted mt-3">Confirme este link para {type === "recovery" ? "trocar sua senha" : "criar sua senha"}. Abrir a página não consome o link.</p>
     <form className="form-stack" onSubmit={confirm}>
       {error && <p role="alert" className="form-error">{error}</p>}
       <Button disabled={pending}>{pending ? "Confirmando…" : "Confirmar acesso"}</Button>

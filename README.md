@@ -2,7 +2,7 @@
 
 Fundação de uma plataforma de finanças pessoais e compartilhadas para casais, originalmente chamada **organiza.ai**. Nosso norte é ajudar na vida financeira e preparar o casamento. Mascotes e gamificação apoiarão hábitos saudáveis.
 
-**Sprint 01: demonstração funcional em memória + preparação da infraestrutura.** Não usar para registrar dinheiro real. Dados iniciais são fictícios, alterações não persistem após recarregar e autenticar não transforma a demonstração em produto real. A revisão de cálculos e persistência está em [docs/FINANCIAL_AUDIT.md](docs/FINANCIAL_AUDIT.md).
+**Sprint 01: demonstração funcional em memória + planejamento mensal persistente no banco local.** Início, finanças, desafio e mascotes continuam demonstrações com dados fictícios; as alterações dessas telas não persistem. A página `/planejamento` guarda estimativas do casal, separadas de pagamentos efetivos e de aportes ao desafio. Não use a demonstração para registrar dinheiro real. A revisão de cálculos e persistência está em [docs/FINANCIAL_AUDIT.md](docs/FINANCIAL_AUDIT.md).
 
 ## Executar localmente
 
@@ -34,7 +34,7 @@ O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões 
 3. Para aplicar migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
 4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
 5. Cadastros públicos estão desativados. As duas contas existem somente no Auth local. Perfis Enzo/gato e Letícia/cachorro foram provisionados localmente; ambos aceitaram o espaço “Nosso Futuro”. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
-6. `/entrar` permite login por e-mail/senha. Em `/conta`, cada pessoa vê seu perfil e o vínculo ativo. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo; um convite pendente expira em 30 dias. A UI financeira permanece fictícia; nenhum lançamento ou aporte real é escrito pelo onboarding.
+6. `/entrar` permite login por e-mail/senha e oferece `/recuperar-senha`. Em ambiente local, o link de recuperação chega ao Mailpit em `http://127.0.0.1:54324`; a confirmação abre `/nova-senha`. Em `/conta`, cada pessoa vê seu perfil e o vínculo ativo. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo; um convite pendente expira em 30 dias. `/planejamento` permite que cada pessoa edite suas próprias estimativas mensais e leia as do casal. A UI de movimentações e desafio permanece fictícia; nenhum pagamento ou aporte real é escrito pelo onboarding ou pelo planejamento.
 7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
 ```bash
@@ -50,7 +50,7 @@ docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR
 docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/campaign_integrity.sql
 ```
 
-O teste usa fixtures sintéticas e rollback. As migrações continuam bloqueando escritas financeiras de clientes; o onboarding por RPC foi liberado, mas comandos financeiros transacionais, assinatura Realtime e persistência da UI financeira ficam para as próximas etapas. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
+O teste usa fixtures sintéticas e rollback. As migrações continuam bloqueando escritas de movimentações e aportes por clientes; o onboarding por RPC e a edição das próprias estimativas mensais foram liberados, mas comandos financeiros transacionais, assinatura Realtime e persistência da UI de movimentações ficam para as próximas etapas. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
 
 ## Validar
 

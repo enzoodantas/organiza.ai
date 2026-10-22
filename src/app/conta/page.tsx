@@ -53,7 +53,7 @@ export default async function Page() {
   const loadError = !!profileError || !!memberError || !!invitationError || detailError;
   return <section className="panel max-w-2xl">
     <h1>Minha conta</h1>
-    <p className="muted mt-3">Acesso autenticado. Seus dados financeiros continuam em demonstração até concluirmos a etapa de persistência.</p>
+    <p className="muted mt-3">O planejamento mensal está salvo no banco local. As movimentações e o desafio ainda são demonstração.</p>
     {loadError ? <p role="alert" className="form-error mt-6">Não foi possível carregar o vínculo. Atualize a página e tente novamente.</p>
       : <AccountOnboarding
         email={auth.user.email ?? ""}

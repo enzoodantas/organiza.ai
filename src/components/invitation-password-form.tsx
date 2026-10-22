@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 
-export function InvitationPasswordForm({ email }: { email: string }) {
-  const router = useRouter();
+export function InvitationPasswordForm({ email, recovery = false }: { email: string; recovery?: boolean }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,8 +36,7 @@ export function InvitationPasswordForm({ email }: { email: string }) {
         setError("Não foi possível definir a senha. Escolha outra e tente novamente.");
         return;
       }
-      router.replace("/conta");
-      router.refresh();
+      window.location.replace("/conta");
     } catch {
       setError("Não foi possível conectar ao serviço de autenticação.");
     } finally {
@@ -48,13 +45,13 @@ export function InvitationPasswordForm({ email }: { email: string }) {
   }
 
   return <>
-    <h2>Definir senha</h2>
-    <p className="muted mt-3">Convite para {email}. Use uma senha exclusiva para esta conta.</p>
+    <h2>{recovery ? "Criar nova senha" : "Definir senha"}</h2>
+    <p className="muted mt-3">Conta {email}. Use uma senha exclusiva para esta conta.</p>
     <form className="form-stack" onSubmit={submit}>
       <label>Nova senha<input name="password" type="password" autoComplete="new-password" minLength={12} required /></label>
       <label>Confirmar senha<input name="confirmation" type="password" autoComplete="new-password" minLength={12} required /></label>
       {error && <p role="alert" className="form-error">{error}</p>}
-      <Button disabled={pending}>{pending ? "Salvando…" : "Definir senha e entrar"}</Button>
+      <Button disabled={pending}>{pending ? "Salvando…" : recovery ? "Salvar nova senha" : "Definir senha e entrar"}</Button>
     </form>
   </>;
 }

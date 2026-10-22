@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Wallet, Flag, PawPrint, UserRound, Plus, Sprout, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-const links = [{ href: "/", label: "Início", icon: House }, { href: "/financas", label: "Finanças", icon: Wallet }, { href: "/desafios", label: "Desafios", icon: Flag }, { href: "/mascotes", label: "Mascotes", icon: PawPrint }, { href: "/perfil", label: "Perfil", icon: UserRound }];
+const links = [{ href: "/", label: "Início", icon: House }, { href: "/financas", label: "Finanças", icon: Wallet }, { href: "/planejamento", label: "Planejamento", icon: Wallet }, { href: "/desafios", label: "Desafios", icon: Flag }, { href: "/mascotes", label: "Mascotes", icon: PawPrint }, { href: "/perfil", label: "Perfil", icon: UserRound }];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   return <div className="app-frame">
@@ -15,8 +15,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="sidebar-note"><Sprout size={25} /><p>Pequenos cuidados hoje.<br /><strong>Um futuro com propósito.</strong></p><span>Planejamento · Contentamento · Generosidade</span></div>
       <Link href="/perfil" className="couple-link"><span className="avatar-pair">E<span>L</span></span><span>Nosso espaço<small>Enzo & Letícia</small></span><ArrowUpRight size={16} /></Link>
     </aside>
-    <div className="main-wrap"><header className="topbar"><span className="topbar-brand">nosso futuro <Sprout size={17} /></span><span className="demo-pill"><span /> Demonstração</span><Link href="/perfil" className="topbar-profile" aria-label="Abrir perfil de demonstração">E + L</Link></header>
-      <div className="demo-notice">Dados fictícios para explorar a fundação do produto. Alterações duram apenas nesta sessão e são apagadas ao recarregar.</div>
+    <div className="main-wrap"><header className="topbar"><span className="topbar-brand">nosso futuro <Sprout size={17} /></span><span className="demo-pill"><span /> {path === "/planejamento" ? "Estimativas salvas" : "Demonstração"}</span><Link href="/conta" className="topbar-profile" aria-label="Abrir minha conta">E + L</Link></header>
+      <div className="demo-notice">{path === "/planejamento" ? "Planejamento salvo no banco local. Valores provisórios; movimentações e desafio permanecem em demonstração." : "Dados fictícios para explorar a fundação do produto. Alterações duram apenas nesta sessão e são apagadas ao recarregar."}</div>
       <main id="conteudo" tabIndex={-1}>{children}</main>
       <footer>Construindo com cuidado, um passo de cada vez. <span>Nosso Futuro · Sprint 01</span></footer>
     </div>
