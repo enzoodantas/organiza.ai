@@ -38,7 +38,8 @@ Pendências, em ordem de execução:
 - [x] Instalar Docker rootless, subir Supabase local enxuto e validar migrations/lint e isolamento SQL com rollback.
 - [x] Desativar cadastro público e alinhar URLs de retorno local nas configurações Auth locais/remotas.
 - [x] Criar convites locais somente para Enzo e Letícia; ambas as contas foram autenticadas e os perfis provisionados localmente.
-- [ ] Concluir aceite de Letícia em `/conta`, validar renovação de sessão e saída de ambas; recuperação de acesso por e-mail ainda pendente.
+- [x] Concluir aceite de Letícia em `/conta`; leitura mútua do espaço e dos perfis confirmada no banco local.
+- [ ] Validar renovação de sessão e saída de ambas; recuperação de acesso por e-mail ainda pendente.
 - [x] Implementar convite de vínculo e aceite/recusa pela própria conta, com limite de dois participantes ativos nas operações expostas.
 - [ ] Definir e implementar saída/revogação de vínculo, retenção e exportação do histórico.
 - [ ] Implementar RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no servidor/banco e auditoria.

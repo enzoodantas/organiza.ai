@@ -2,7 +2,7 @@
 
 ## Onboarding local — 22/10/2026
 
-A migração `202610220002_onboarding.sql` foi aplicada somente ao Supabase local. TypeScript, ESLint, `git diff --check` e `db lint --local --fail-on error` passaram. Consultas com os papéis autenticados mostraram: Enzo vê seu perfil, o espaço e seu próprio vínculo; Letícia vê seu perfil e o convite recebido, mas nenhum relacionamento ou membro antes do aceite. Ambos não têm escrita direta em `financial_entries` nem leitura direta na tabela de convites. O banco local contém dois perfis, um relacionamento com apenas Enzo e um convite pendente para Letícia. O aceite real pela conta dela e a verificação de login/saída pela interface permanecem pendentes. Nenhum teste de suíte foi acrescentado ou executado nesta etapa.
+A migração `202610220002_onboarding.sql` foi aplicada somente ao Supabase local. TypeScript, ESLint, `git diff --check` e `db lint --local --fail-on error` passaram na implementação. Antes do aceite, consultas com os papéis autenticados mostraram: Enzo via seu perfil, o espaço e seu próprio vínculo; Letícia via seu perfil e o convite recebido, mas nenhum relacionamento ou membro. Após Letícia aceitar na própria conta, o banco passou a ter dois perfis, um relacionamento, dois membros ativos, um convite aceito e nenhum convite pendente. Consultas com o papel de cada pessoa mostraram dois perfis, um relacionamento, dois membros e zero convites pendentes para ambas. Elas não têm escrita direta em `financial_entries` nem leitura direta na tabela de convites. Login/saída e renovação de sessão pela interface ainda não foram verificados nesta etapa. Nenhum teste de suíte foi acrescentado ou executado.
 
 ## Revisão financeira de 22/10/2026
 
