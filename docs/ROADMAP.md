@@ -39,19 +39,23 @@ Pendências, em ordem de execução:
 - [x] Desativar cadastro público e alinhar URLs de retorno local nas configurações Auth locais/remotas.
 - [x] Criar convites locais somente para Enzo e Letícia; ambas as contas foram autenticadas e os perfis provisionados localmente.
 - [x] Concluir aceite de Letícia em `/conta`; leitura mútua do espaço e dos perfis confirmada no banco local.
-- [ ] Validar renovação de sessão e saída de ambas; recuperação de acesso por e-mail ainda pendente.
+- [ ] Validar renovação de sessão e saída de ambas; login e recuperação local das duas contas foram confirmados.
 - [x] Implementar convite de vínculo e aceite/recusa pela própria conta, com limite de dois participantes ativos nas operações expostas.
 - [ ] Definir e implementar saída/revogação de vínculo, retenção e exportação do histórico.
-- [ ] Implementar RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no servidor/banco e auditoria.
+- [x] Implementar no banco local RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no banco e auditoria.
 - [ ] Após as RPCs e onboarding, importar de forma revisável os lançamentos do último mês a partir do extrato fornecido pelo casal; confirmar categorias, contas, duplicidades e totais antes de gravar.
-- [ ] Validar saldo livre por conta, centavos, escopos, idempotência e concorrência. Manter as escritas reais bloqueadas até essas verificações passarem.
-- [ ] Conectar a interface a dados persistidos, gerar tipos do banco e testar dois casais isolados, sem fallback silencioso para demonstração.
+- [x] Validar no Supabase local saldo livre por conta, centavos, escopos, idempotência, isolamento e duas despesas concorrentes. Escrita direta nas tabelas permanece bloqueada.
+- [ ] Integrar os tipos já gerados do banco aos clientes Supabase e concluir revisão das telas autenticadas. Início, finanças e desafio já leem/escrevem no banco local; visitantes continuam em demonstração sinalizada. Teste SQL cobriu dois casais; smoke de navegador cobriu um usuário sintético e removeu suas fixtures.
 - [ ] Ligar e validar as assinaturas Realtime após o fluxo persistente estar seguro.
 - [ ] Acompanhar a correção dos cinco alertas da cadeia de desenvolvimento do lint e a compatibilidade para atualizar ESLint. Auditoria de produção desta entrega: zero alertas.
 - [ ] Validar instalação PWA em celular físico; offline e sincronização ainda não estão implementados.
 - [ ] Evoluir recompensas, inventário, missões e cenário somente após validar a utilidade financeira básica. Voz/IA continuam futuras e sem API paga integrada.
 
 Decisões a confirmar no momento adequado: nome final do produto, contas e saldos iniciais, orçamento/data do casamento e política de retenção/exportação após saída do relacionamento. Não presumir essas informações na implementação.
+
+### Incremento local de finanças — 22/10/2026
+
+As migrações `202610220004_financial_operations.sql`, `202610220005_financial_lock_order.sql` e `202610220006_account_idempotency.sql` foram aplicadas apenas ao Supabase local. O cofrinho e seu saldo inicial preexistente foram preservados; nenhuma movimentação real do casal foi criada. As páginas autenticadas `/`, `/financas` e `/desafios` agora usam dados persistidos, enquanto a navegação sem login permanece fictícia. O teste SQL usa rollback; o smoke de Chrome cria e remove usuário/conta sintéticos, valida criação de conta, receita, reserva, recarregamento, reversões, largura de 320 px e concorrência. A criação de conta também usa chave idempotente para impedir saldo inicial duplicado em retries. Próximo aceite exige revisão do casal sobre contas/saldos, política de vínculo e teste das duas sessões reais antes de importar valores ou preparar publicação.
 
 Ordem de implementação acordada:
 

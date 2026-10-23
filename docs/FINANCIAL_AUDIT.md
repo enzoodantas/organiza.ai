@@ -1,5 +1,7 @@
 # Auditoria financeira e de persistência — 22/10/2026
 
+> Registro da revisão inicial, anterior às migrações financeiras `004/005/006`. O estado atual de operações locais e seus testes está em [VALIDATION.md](VALIDATION.md). As barreiras abaixo descrevem o que faltava nesta revisão; algumas já foram resolvidas no Supabase local.
+
 ## Resposta direta
 
 A grade de 1 a 200 aceita um número disponível por clique/teclado ou pelo campo numérico. O usuário confirma o aporte fictício no formulário. O número fica marcado, aparece no histórico e pode ser revertido; após reversão, ele volta a ficar disponível e o registro antigo continua visível. **Essas ações ainda não são gravadas no Supabase.** O estado React é reiniciado ao recarregar a página. A consulta de contagens do PostgreSQL local nesta data encontrou zero linhas em `profiles`, `relationships`, `accounts`, `financial_entries`, `campaigns`, `contributions` e `audit_events`.

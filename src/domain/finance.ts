@@ -28,6 +28,12 @@ export const money = (value: number) => {
   const centavos = String(absolute % 100n).padStart(2, "0");
   return `${value < 0 ? "-" : ""}R$ ${reais},${centavos}`;
 };
+export function moneyFromCents(value: string | number | bigint): string {
+  const centsValue = BigInt(value);
+  const absolute = centsValue < 0n ? -centsValue : centsValue;
+  const reais = new Intl.NumberFormat("pt-BR").format(absolute / 100n);
+  return `${centsValue < 0n ? "-" : ""}R$ ${reais},${String(absolute % 100n).padStart(2, "0")}`;
+}
 export function summarize(entries: Entry[]) {
   const active = entries.filter(e => !e.reversed);
   const income = safeSum(active.filter(e => e.kind === "income").map(e => e.amountCents));

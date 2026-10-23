@@ -53,7 +53,7 @@ export default async function Page() {
   const loadError = !!profileError || !!memberError || !!invitationError || detailError;
   return <section className="panel max-w-2xl">
     <h1>Minha conta</h1>
-    <p className="muted mt-3">O planejamento mensal está salvo no banco local. As movimentações e o desafio ainda são demonstração.</p>
+    <p className="muted mt-3">O planejamento, as contas e as movimentações agora usam o banco local. Registre somente valores efetivos nas áreas financeiras.</p>
     {loadError ? <p role="alert" className="form-error mt-6">Não foi possível carregar o vínculo. Atualize a página e tente novamente.</p>
       : <AccountOnboarding
         email={auth.user.email ?? ""}

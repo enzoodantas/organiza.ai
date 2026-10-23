@@ -1,4 +1,10 @@
-# Validação — Sprint 01
+# Validação — fundação e Sprint 02 local
+
+## Operações financeiras locais — 22/10/2026
+
+As migrações `202610220004_financial_operations.sql`, `202610220005_financial_lock_order.sql` e `202610220006_account_idempotency.sql` foram aplicadas somente ao Supabase local, sem apagar contas ou estimativas. `supabase/tests/financial_operations.sql` passou com rollback: saldos inicial/total/livre, centavos, idempotência de contas e lançamentos, gasto sem cobertura, reserva, reversão com cobertura, auditoria, leitura do parceiro, proibição de escrita em conta individual alheia, isolamento de outro casal, membro revogado, anônimo e ausência de escrita direta. O smoke `tests/real-finance-smoke.mjs` passou em Chrome com usuário sintético: login, conta, receita, reserva, reload, telas a 320 px, reversões e duas despesas concorrentes disputando o mesmo saldo. A fixture foi removida; conferência posterior encontrou somente as duas contas Auth do casal, um cofrinho, um saldo inicial e zero lançamentos/aportes reais. Os 10 cenários Playwright da demonstração também passaram em desktop/mobile.
+
+TypeScript, ESLint, 32 testes Vitest, build de produção com Webpack e `git diff --check` passaram. `db lint --local --fail-on error` não encontrou erros. O build Turbopack falhou neste ambiente ao tentar abrir porta de processo auxiliar (`Operation not permitted`); o build Webpack concluiu todas as rotas. Ainda falta testar as duas sessões reais nas novas telas, política de saída/exportação, migração para ambiente publicado, Realtime e restauração de backup. As seções da Sprint 01 abaixo são um registro histórico anterior a este incremento.
 
 ## Onboarding local — 22/10/2026
 

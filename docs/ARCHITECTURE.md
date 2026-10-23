@@ -1,8 +1,8 @@
-# Arquitetura — Sprint 01
+# Arquitetura — fundação e Sprint 02 local
 
 ## Estado da fundação
 
-Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts apresenta valores fictícios. Um projeto Supabase remoto de desenvolvimento em `sa-east-1` foi provisionado e vinculado pela CLI. Para uso diário, `.env.local` aponta ao stack Docker local rootless, mantido leve com Postgres, Auth, REST, Kong e Mailpit. Chaves e senha do banco ficam somente em arquivo local ignorado pelo Git. Nenhum desses bancos alimenta as telas financeiras ainda.
+Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts permanece na demonstração anônima. Um projeto Supabase remoto de desenvolvimento em `sa-east-1` foi provisionado e vinculado pela CLI. Para uso diário, `.env.local` aponta ao stack Docker local rootless, mantido leve com Postgres, Auth, REST, Kong e Mailpit. Chaves e senha do banco ficam somente em arquivo local ignorado pelo Git. Sessões autenticadas com vínculo ativo já usam o banco local em início, finanças e desafio; o remoto ainda não recebeu as migrações dessa fase.
 
 ## Estrutura
 
@@ -27,7 +27,7 @@ public/                 ícones originais PWA
 
 ## Fronteiras
 
-Hoje: componentes → provider em memória → funções de domínio. Nenhum fluxo financeiro da interface escreve no Supabase, inclusive após autenticar. O provider não é uma fronteira de segurança: é uma simulação para UX e testes.
+Hoje há dois caminhos explícitos: visitantes sem sessão usam provider em memória e dados fictícios; pessoas autenticadas com vínculo ativo usam consultas RLS e RPCs transacionais no Supabase local. O provider de demonstração não é uma fronteira de segurança. A UI calcula apenas apresentações; saldo, permissão e idempotência são decididos no banco.
 
 Destino: formulário manual ou proposta de IA confirmada → comando de aplicação → usuário verificado no servidor → validação do domínio → RPC transacional sob identidade do usuário → constraints/RLS/autorização → auditoria/outbox → regras de recompensa → atualização da interface por Realtime. Nunca confiar em owner_id, relationship_id, XP ou actor_id vindos do navegador.
 
@@ -41,6 +41,7 @@ Destino: formulário manual ou proposta de IA confirmada → comando de aplicaç
 | relationship_members | N:N entre perfil e relacionamento; datas de entrada e revogação |
 | relationship_invitations | Convite direcionado a uma conta Auth confirmada, com validade e registro de aceite/recusa |
 | accounts | Conta individual (owner obrigatório) ou conjunta (owner nulo); BRL |
+| account_opening_balances | Saldo observado e data de corte por conta, separado de receita |
 | financial_entries | Receita, despesa ou transferência; contas de origem/destino do mesmo tenant, valor inteiro, idempotência, reversão |
 | campaigns | Meta e regras JSON versionáveis; padrão para grade 1–200 |
 | contributions | Reserva vinculada à campanha, participante e conta; slot e reversão |
@@ -53,23 +54,23 @@ Chaves estrangeiras compostas garantem que contas, participantes e campanhas per
 
 ## Acesso: o que está ativo e o que falta
 
-RLS habilitada em todas as tabelas; a consulta ao banco de desenvolvimento confirmou RLS nas dez tabelas iniciais e ausência de UPDATE direto por authenticated. Funções privadas SECURITY DEFINER, search_path vazio e execução restrita evitam recursão e vazamento. As políticas limitam leituras a tenants ativos; profiles é visível para si ou parceiros ativos. A RPC de mascote foi verificada com perfis sintéticos. O teste dinâmico completo de isolamento ainda está pendente.
+RLS habilitada em todas as tabelas; o teste PostgreSQL local cobre isolamento entre casais, parceiro, membro revogado e anônimo. Funções privadas SECURITY DEFINER, search_path vazio e execução restrita evitam recursão e vazamento. As políticas limitam leituras a tenants ativos; profiles é visível para si ou parceiros ativos. A RPC de mascote foi verificada com perfis sintéticos.
 
-**Todas as escritas financeiras de anon/authenticated continuam bloqueadas.** A migração de onboarding expõe apenas RPCs delimitadas para perfil e vínculo, sem conceder escrita direta nas tabelas. A autorização individual/conjunta da interface financeira segue apenas na demonstração; ainda não é um fluxo real de persistência. Futuras RPCs financeiras devem validar membership ativo, dono de registro individual, escopo das duas contas de uma transferência, responsável e vínculo de contribuição. Tabelas de auditoria são somente leitura ao cliente; gatilhos capturam mutações de lançamentos, contribuições e recompensas. A identidade do ator é auth.uid(), não um campo fornecido pelo cliente. Ações administrativas sem JWT têm actor_id nulo; uma camada operacional deverá registrar o operador e o motivo.
+**INSERT/UPDATE/DELETE diretos nas tabelas financeiras continuam bloqueados para anon/authenticated.** As migrações `202610220004` a `202610220006` liberam somente RPCs específicas para criar conta, listar saldo, registrar/reverter movimentação, criar campanha, reservar/reverter número. Elas derivam o ator de `auth.uid()`, exigem vínculo ativo, restringem conta individual ao dono, serializam operações por conta, verificam saldo livre e mantêm idempotência por chave de requisição, inclusive na criação de conta com saldo inicial. A transferência toca as duas contas em uma transação. Tabelas de auditoria são somente leitura ao cliente; gatilhos capturam mutações de contas, saldos iniciais, lançamentos, contribuições e recompensas. Ações administrativas sem JWT têm actor_id nulo; uma camada operacional deverá registrar o operador e o motivo.
 
 O incremento de seleção de mascote expõe uma operação específica para a preferência do próprio perfil, conforme a seção abaixo. Isso não libera atualização genérica de profiles nem qualquer escrita financeira, de inventário ou de recompensas pelo cliente.
 
-O onboarding de perfis/casal está em `/conta`; a edição de dados financeiros reais continua fora da UI. Não usar service_role no navegador nem em variável NEXT_PUBLIC_. Segurança de aplicação e segurança SQL são complementares; os testes puros não provam RLS. Testes SQL devem passar em Supabase descartável antes de qualquer uso com dinheiro real.
+O onboarding de perfis/casal está em `/conta`; `/financas` e `/desafios` autenticados usam as RPCs reais, enquanto visitantes veem uma demonstração identificada. Não usar service_role no navegador nem em variável NEXT_PUBLIC_. Segurança de aplicação e segurança SQL são complementares; testes PostgreSQL e de navegador sintéticos passaram no Supabase local. Saída/revogação do vínculo, retenção/exportação e operação publicada ainda precisam ser concluídas.
 
 ## Contabilidade e campanhas
 
-A auditoria detalhada de cálculos, persistência e lacunas para dinheiro real está em [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md). A migração `202610220001_campaign_integrity.sql` foi aplicada localmente e ao projeto remoto de desenvolvimento: valida regra de grade, meta, número e valor de aportes, e impede alteração das regras após haver histórico. Ainda não há RPC financeira ou vínculo entre a UI e essas tabelas.
+A auditoria inicial de cálculos e lacunas está em [FINANCIAL_AUDIT.md](FINANCIAL_AUDIT.md). A migração `202610220001_campaign_integrity.sql` foi aplicada localmente e ao projeto remoto de desenvolvimento; as migrações de operações `004/005/006` estão somente no Supabase local. A grade valida regra, meta, número e valor e impede mudança após haver histórico.
 
 - Receita: destino obrigatório; despesa: origem obrigatória; transferência: ambas diferentes, no mesmo tenant. Uma transferência gera um único evento com duas pontas na mesma transação e nunca entra nas somas de receitas/despesas.
-- Saldo consolidado = receitas ativas − despesas ativas, incluindo saldos iniciais que terão estratégia de migração definida na Sprint 02.
-- Saldo por conta futura: receitas e transferências recebidas − despesas e transferências enviadas; reversões excluídas.
+- Saldo consolidado = saldos iniciais + receitas ativas − despesas ativas; transferências têm efeito consolidado zero.
+- Saldo por conta = saldo inicial + receitas e transferências recebidas − despesas e transferências enviadas; reversões excluídas. O saldo inicial não é receita.
 - Reserva de campanha fica em contributions e não gera receita. Saldo livre = saldo da conta − reservas ativas dessa conta. Aporte externo precisa primeiro de receita registrada uma única vez; aporte com mudança de conta precisa de transferência real e reserva na mesma unidade de trabalho.
-- RPC de aporte deverá bloquear a conta para evitar sobre-reserva concorrente, verificar número/valor segundo rules e incluir auditoria/evento de domínio atomicamente. Isso ainda não está implementado.
+- RPC de aporte bloqueia a conta para evitar sobre-reserva concorrente, verifica regra/valor e registra auditoria na mesma transação. Eventos de recompensa ainda não são emitidos.
 - Correções mantêm histórico e reabrem slots revertidos. RPCs não permitirão alteração arbitrária de tenant, dono, valor ou contas em registros históricos.
 
 ## Gamificação independente
@@ -120,7 +121,7 @@ Testar ambas as espécies para cada usuário, duas pessoas com a mesma espécie,
 
 ## Autenticação e Realtime
 
-Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor para proteger /conta. Login por e-mail/senha está preparado; cadastro público está desativado local e remotamente. Enzo e Letícia autenticaram no Auth local. `/auth/confirm` exige clique antes de verificar o link no navegador e mantém a sessão no mesmo host. `/convite` permite definir senha. A migração `202610220002_onboarding.sql` libera apenas RPCs de perfil, espaço e convite: identidade derivada de `auth.uid()`, alvo do convite por e-mail confirmado, aceite/recusa pela conta destinatária, validade de 30 dias e limite de um relacionamento ativo por pessoa e duas pessoas por espaço nas operações expostas. A tabela de convites não tem leitura direta pelo cliente; a RPC lista somente convites próprios. Perfis Enzo/gato e Letícia/cachorro foram provisionados somente no banco local; os dois são membros ativos do espaço “Nosso Futuro” após aceite pela conta de Letícia. A leitura RLS antes do aceite mostrava apenas o próprio perfil a cada pessoa; após o aceite, ambas veem os dois perfis, o espaço e os dois membros. Escritas financeiras permanecem bloqueadas. Saída/revogação, retenção/exportação e recuperação de acesso por e-mail seguem pendentes. Respostas de autenticação são privadas, sem cache público. A migração inicial adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e tratamento de reconexão ficam para a etapa de persistência. O serviço Realtime não é iniciado no stack local leve nesta sprint. Nunca usar Realtime como fonte de autorização.
+Clientes @supabase/ssr separados, cookies renovados pelo proxy e getUser no servidor protegem as rotas reais. Login e recuperação de senha pelo Mailpit local foram validados pelo casal; cadastro público continua desativado. O provedor de e-mail fica ativo para permitir login/recuperação de contas existentes, enquanto `[auth].enable_signup=false` impede cadastro público. `/auth/confirm` exige clique explícito e mantém o mesmo host. A migração `202610220002_onboarding.sql` expõe RPCs de perfil, espaço, convite e aceite/recusa pela própria conta, com limite de um vínculo ativo por pessoa e duas pessoas por espaço. Os dois perfis são membros ativos do espaço local; RLS permite leitura mútua após o aceite. A tabela de convites não tem leitura direta. As migrações financeiras `004/005/006` expõem operações autorizadas somente no ambiente local; escrita direta nas tabelas segue bloqueada. Saída/revogação, retenção/exportação e renovação de sessão ainda não foram concluídas. Respostas de autenticação são privadas, sem cache público. A migração inicial adiciona financial_entries/contributions à publicação supabase_realtime; assinaturas da UI e reconexão ficam para depois. O serviço Realtime não é iniciado no stack local leve. Nunca usar Realtime como fonte de autorização.
 
 ## PWA, acessibilidade e interface
 

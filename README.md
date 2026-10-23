@@ -2,7 +2,7 @@
 
 Fundação de uma plataforma de finanças pessoais e compartilhadas para casais, originalmente chamada **organiza.ai**. Nosso norte é ajudar na vida financeira e preparar o casamento. Mascotes e gamificação apoiarão hábitos saudáveis.
 
-**Sprint 01: demonstração funcional em memória + planejamento mensal persistente no banco local.** Início, finanças, desafio e mascotes continuam demonstrações com dados fictícios; as alterações dessas telas não persistem. A página `/planejamento` guarda estimativas do casal, separadas de pagamentos efetivos e de aportes ao desafio. Não use a demonstração para registrar dinheiro real. A revisão de cálculos e persistência está em [docs/FINANCIAL_AUDIT.md](docs/FINANCIAL_AUDIT.md).
+**Sprint 02 em andamento: finanças persistentes no banco local para contas autenticadas.** Início, finanças e desafio usam dados reais apenas quando há sessão e vínculo ativo; sem sessão, continuam como demonstração fictícia. `/planejamento` guarda estimativas separadas de pagamentos e reservas efetivos. O fluxo real permite criar contas, registrar receitas/despesas/transferências, reservar números e reverter operações, com saldo livre calculado no banco. Antes de registrar valores pessoais, cada participante deve conferir contas, saldo inicial e data de corte. O ambiente remoto e a publicação ainda não foram preparados para uso financeiro.
 
 ## Executar localmente
 
@@ -19,9 +19,8 @@ Abrir http://localhost:3000, especialmente para autenticação (o mesmo host dev
 
 ## O que experimentar
 
-- Início: resumo consolidado, gráfico e progresso do desafio fictícios.
-- Finanças: filtrar por participante/espaço conjunto, adicionar receita/despesa e reverter registros autorizados.
-- Desafios: preencher número de 1 a 200, ver responsável/progresso e reverter aporte. Duplicidades ativas são bloqueadas.
+- Sem login: explorar o início, finanças e desafio fictícios, sem persistência.
+- Com login e vínculo: conferir contas/saldo livre, registrar e reverter receitas/despesas/transferências em `/financas` e reservar/reverter números em `/desafios`.
 - Perfil: alternar participante fictício e observar a restrição de edição individual.
 - Mascotes: prévia original do gato e cachorrinho, com evolução explicitamente futura.
 
@@ -33,8 +32,8 @@ O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões 
 2. A configuração local da CLI está em `supabase/config.toml`. Para vincular outro projeto, autentique com `npx supabase login` e use `npx supabase link --project-ref SEU_PROJECT_REF`. Não coloque senha do banco no repositório.
 3. Para aplicar migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
 4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
-5. Cadastros públicos estão desativados. As duas contas existem somente no Auth local. Perfis Enzo/gato e Letícia/cachorro foram provisionados localmente; ambos aceitaram o espaço “Nosso Futuro”. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
-6. `/entrar` permite login por e-mail/senha e oferece `/recuperar-senha`. Em ambiente local, o link de recuperação chega ao Mailpit em `http://127.0.0.1:54324`; a confirmação abre `/nova-senha`. Em `/conta`, cada pessoa vê seu perfil e o vínculo ativo. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo; um convite pendente expira em 30 dias. `/planejamento` permite que cada pessoa edite suas próprias estimativas mensais e leia as do casal. A UI de movimentações e desafio permanece fictícia; nenhum pagamento ou aporte real é escrito pelo onboarding ou pelo planejamento.
+5. Cadastros públicos estão desativados por `[auth].enable_signup = false`. O provedor de e-mail deve continuar ativo com `[auth.email].enable_signup = true`; desativá-lo bloqueia também login por senha e recuperação (`email_provider_disabled`). As duas contas existem somente no Auth local. Perfis Enzo/gato e Letícia/cachorro foram provisionados localmente; ambos aceitaram o espaço “Nosso Futuro”. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
+6. `/entrar` permite login por e-mail/senha e oferece `/recuperar-senha`. Em ambiente local, o link de recuperação chega ao Mailpit em `http://127.0.0.1:54324`; a confirmação abre `/nova-senha`. Em `/conta`, cada pessoa vê seu perfil e o vínculo ativo. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo; um convite pendente expira em 30 dias. `/planejamento` permite que cada pessoa edite suas próprias estimativas mensais e leia as do casal. Início, finanças e desafio consultam o banco local quando a sessão e o vínculo estão ativos. O onboarding e o planejamento não registram pagamentos ou aportes.
 7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
 ```bash
@@ -48,9 +47,10 @@ O endpoint local é `http://127.0.0.1:54321`; Postgres fica em `127.0.0.1:54322`
 ```bash
 docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/isolation.sql
 docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/campaign_integrity.sql
+docker exec -i supabase_db_nosso-futuro psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/financial_operations.sql
 ```
 
-O teste usa fixtures sintéticas e rollback. As migrações continuam bloqueando escritas de movimentações e aportes por clientes; o onboarding por RPC e a edição das próprias estimativas mensais foram liberados, mas comandos financeiros transacionais, assinatura Realtime e persistência da UI de movimentações ficam para as próximas etapas. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
+Os testes usam fixtures sintéticas e rollback. INSERT/UPDATE/DELETE diretos nas tabelas financeiras continuam bloqueados para clientes; as operações autenticadas passam por RPCs que validam vínculo, conta, saldo livre e idempotência. Realtime, exportação e política de saída/retenção seguem pendentes. Políticas e limites estão em [ARCHITECTURE](docs/ARCHITECTURE.md).
 
 ## Validar
 
