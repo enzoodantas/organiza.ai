@@ -138,7 +138,7 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
       await refresh();
       request.current = null;
       form.reset();
-      setNotice("Movimentação salva no banco e saldo atualizado.");
+      setNotice("Movimentação salva e saldo atualizado.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível registrar.");
     } finally { setBusy(false); }
@@ -180,7 +180,7 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
         })}</div>}
     </section>
     <div className="finance-columns mt-6">
-      <section className="panel"><h2>Registrar movimentação</h2>
+      <section id="novo" tabIndex={-1} aria-labelledby="new-entry-title" className="panel"><h2 id="new-entry-title">Registrar movimentação</h2>
         <form className="form-stack mt-4" onSubmit={recordEntry}>
           <label>Tipo<select name="kind" value={kind} onChange={event => setKind(event.target.value as typeof kind)}>
             <option value="expense">Despesa</option><option value="income">Receita</option><option value="transfer">Transferência entre contas</option>

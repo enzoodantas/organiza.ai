@@ -61,7 +61,7 @@ try {
   const accountOption = await page.getByLabel("Conta que guarda o dinheiro").locator("option").nth(1).getAttribute("value");
   assert.ok(accountOption);
   await page.getByLabel("Conta que guarda o dinheiro").selectOption(accountOption);
-  await page.getByRole("button", { name: "Reservar no banco" }).click();
+  await page.getByRole("button", { name: "Confirmar reserva" }).click();
   await page.getByText("Número 10 reservado", { exact: false }).waitFor();
   await page.reload();
   await page.getByText("1/200 números").waitFor();

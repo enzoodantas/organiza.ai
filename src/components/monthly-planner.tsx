@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRef, useState, type FormEvent } from "react";
 import { browserClient } from "@/lib/supabase/client";
 import { money, parseMoney } from "@/domain/finance";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,13 @@ export function MonthlyPlanner({ relationshipId, userId, names, initialItems, op
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [feedbackFor, setFeedbackFor] = useState("");
+  const ownSection = useRef<HTMLElement>(null);
+
+  function feedback(target: string) {
+    if (feedbackFor !== target) return null;
+    return <div className="plan-feedback">{busy && <p role="status">Salvando alteração…</p>}{error && <p role="alert" className="form-error">{error}</p>}{notice && <p role="status" className="form-success">{notice}</p>}</div>;
+  }
   const regularIncome = items.filter(item => item.kind === "income" && item.certainty === "regular")
     .reduce((sum, item) => sum + item.amount_cents, 0);
   const variableIncome = items.filter(item => item.kind === "income" && item.certainty === "variable")
@@ -30,6 +38,7 @@ export function MonthlyPlanner({ relationshipId, userId, names, initialItems, op
   async function save(event: FormEvent<HTMLFormElement>, id?: string) {
     event.preventDefault();
     if (busy) return;
+    setFeedbackFor(id ?? "new");
     setBusy(true); setError(""); setNotice("");
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -58,24 +67,30 @@ export function MonthlyPlanner({ relationshipId, userId, names, initialItems, op
         setItems(current => [...current, inserted as PlanItem]);
         form.reset();
       }
-      setNotice("Estimativa salva no banco. Nenhum pagamento foi registrado.");
+      setNotice(`Estimativa “${label}” salva. Nenhum pagamento foi registrado.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível salvar.");
     } finally { setBusy(false); }
   }
 
-  async function archive(id: string) {
-    if (busy) return;
-    setBusy(true); setError(""); setNotice("");
-    const { data, error: archiveError } = await browserClient().from("monthly_plan_items")
-      .update({ active: false }).eq("id", id).eq("owner_id", userId).select("id").single();
-    if (archiveError || !data) setError("Não foi possível retirar a estimativa.");
-    else { setItems(current => current.filter(item => item.id !== id)); setNotice("Estimativa retirada; histórico preservado no banco."); }
-    setBusy(false);
+  async function archive(item: PlanItem) {
+    if (busy || !window.confirm(`Retirar a estimativa “${item.label}” do planejamento? Ela deixará de entrar nos totais. Nenhum pagamento será alterado e o histórico será preservado.`)) return;
+    setFeedbackFor(item.id); setBusy(true); setError(""); setNotice("");
+    try {
+      const { data, error: archiveError } = await browserClient().from("monthly_plan_items")
+        .update({ active: false }).eq("id", item.id).eq("owner_id", userId).select("id").single();
+      if (archiveError || !data) throw new Error("Não foi possível retirar a estimativa. Tente novamente.");
+      setItems(current => current.filter(row => row.id !== item.id));
+      setFeedbackFor("archive");
+      setNotice(`Estimativa “${item.label}” retirada dos totais. O histórico foi preservado.`);
+      ownSection.current?.focus();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "A conexão falhou. Confira o planejamento antes de tentar novamente.");
+    } finally { setBusy(false); }
   }
 
   return <>
-    <div className="page-heading"><div><p className="eyebrow">NOSSOS NÚMEROS REAIS</p><h1>Planejamento mensal</h1><p className="page-description">Médias conversadas em outubro de 2026. Revise os valores a cada mês.</p></div></div>
+    <div className="page-heading"><div><p className="eyebrow">NOSSOS NÚMEROS REAIS</p><h1>Planejamento mensal</h1><p className="page-description">Suas estimativas de receitas e gastos. Revise os valores a cada mês.</p></div></div>
     <p className="prepared-note">Estes valores são estimativas e podem estar errados. Alterar uma estimativa não registra pagamento, depósito ou aporte no desafio.</p>
     <div className="stat-grid mt-6">
       <div className="stat-card"><span>Receita mensal regular estimada</span><strong>{money(regularIncome)}</strong><small>Sem bicos e vendas eventuais</small></div>
@@ -87,16 +102,18 @@ export function MonthlyPlanner({ relationshipId, userId, names, initialItems, op
         : <p className="muted mt-3">Nenhum saldo inicial informado.</p>}
       <p className="muted mt-3">Bicos: média eventual de {money(variableIncome)}. Vendas de alfajores estão paradas. Um depósito eventual na caixinha deve ser lançado quando realmente ocorrer.</p>
     </section>
-    {Object.entries(names).map(([ownerId, name]) => <section className="panel mt-6" key={ownerId}>
+    {Object.entries(names).map(([ownerId, name]) => <section ref={ownerId === userId ? ownSection : undefined} tabIndex={-1} className="panel mt-6" key={ownerId}>
       <h2>{name}</h2><p className="muted mt-2">{ownerId === userId ? "Você pode ajustar suas estimativas." : "Estimativas do outro participante; somente leitura."}</p>
+      {ownerId === userId && feedback("archive")}
       <div className="entry-list">{items.filter(item => item.owner_id === ownerId).map(item => ownerId === userId
         ? <form className="plan-item-form" key={item.id} onSubmit={event => save(event, item.id)}>
-          <input name="label" aria-label="Descrição" defaultValue={item.label} maxLength={100} required />
-          <input name="amount" aria-label={`Valor de ${item.label} em reais`} defaultValue={valueText(item.amount_cents)} inputMode="decimal" required />
-          <select name="certainty" aria-label={`Regularidade de ${item.label}`} defaultValue={item.certainty}><option value="regular">Regular</option><option value="variable">Eventual</option></select>
-          <input name="remaining_installments" aria-label={`Parcelas restantes de ${item.label}`} type="number" min={1} max={600} placeholder="Parcelas" defaultValue={item.remaining_installments ?? ""} />
+          <label>Descrição<input name="label" aria-label={`Descrição de ${item.label}`} defaultValue={item.label} maxLength={100} required /></label>
+          <label>Valor (R$)<input name="amount" aria-label={`Valor de ${item.label} em reais`} defaultValue={valueText(item.amount_cents)} inputMode="decimal" required /></label>
+          <label>Regularidade<select name="certainty" aria-label={`Regularidade de ${item.label}`} defaultValue={item.certainty}><option value="regular">Regular</option><option value="variable">Eventual</option></select></label>
+          <label>Parcelas restantes<input name="remaining_installments" aria-label={`Parcelas restantes de ${item.label}`} type="number" min={1} max={600} placeholder="Se houver" defaultValue={item.remaining_installments ?? ""} /></label>
           <span>{item.kind === "income" ? "Receita" : "Gasto"}</span>
-          <Button type="submit" disabled={busy}>Salvar</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => archive(item.id)}>Retirar</Button>
+          <Button type="submit" disabled={busy}>Salvar<span className="sr-only"> {item.label}</span></Button><Button type="button" variant="ghost" disabled={busy} onClick={() => archive(item)}>Retirar<span className="sr-only"> {item.label}</span></Button>
+          {feedback(item.id)}
         </form>
         : <div className="plan-item-read" key={item.id}><span>{item.label}{item.remaining_installments ? ` · ${item.remaining_installments} parcelas restantes` : ""}{item.certainty === "variable" ? " · eventual" : ""}</span><strong>{money(item.amount_cents)}</strong></div>)}</div>
     </section>)}
@@ -105,7 +122,8 @@ export function MonthlyPlanner({ relationshipId, userId, names, initialItems, op
       <div className="form-row"><label>Tipo<select name="kind"><option value="expense">Gasto</option><option value="income">Receita</option></select></label><label>Valor em reais<input name="amount" inputMode="decimal" required placeholder="0,00" /></label></div>
       <div className="form-row"><label>Regularidade<select name="certainty"><option value="regular">Regular</option><option value="variable">Eventual</option></select></label><label>Parcelas restantes, se houver<input name="remaining_installments" type="number" min={1} max={600} /></label></div>
       <Button type="submit" disabled={busy}>Adicionar estimativa</Button>
+    {feedback("new")}
     </form></section>
-    {error && <p role="alert" className="form-error mt-6">{error}</p>}{notice && <p role="status" className="form-success mt-6">{notice}</p>}
+    <p className="footnote mt-6">Conferiu o planejamento da semana? <Link className="underline" href="/mascotes#revisao">Reconheça a revisão e cuide do seu mascote</Link>.</p>
   </>;
 }

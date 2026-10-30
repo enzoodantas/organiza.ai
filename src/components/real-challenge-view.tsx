@@ -27,6 +27,8 @@ export function RealChallengeView({ relationshipId, userId, names,
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const reservationForm = useRef<HTMLElement>(null);
+  const numberGrid = useRef<HTMLDivElement>(null);
   const request = useRef<{ fingerprint: string; key: string } | null>(null);
   const writable = initialAccounts.filter(account => account.scope === "shared" || account.owner_id === userId);
   const accountMap = new Map(initialAccounts.map(account => [account.id, account]));
@@ -115,17 +117,20 @@ export function RealChallengeView({ relationshipId, userId, names,
     {notice && <p role="status" className="form-success mt-6">{notice}</p>}
     <div className="finance-columns mt-6">
       <section className="panel"><h2>O mapa do nosso objetivo</h2><p className="muted mb-5">Cada número vale seu valor em reais. Verde indica uma reserva ativa.</p>
-        <div className="number-grid">{Array.from({ length: 200 }, (_, index) => index + 1).map(number =>
+        <div ref={numberGrid} className="number-grid">{Array.from({ length: 200 }, (_, index) => index + 1).map(number =>
           <button key={number} type="button" className={`${activeSlots.has(number) ? "filled" : ""} ${selected === String(number) ? "selected" : ""}`}
             disabled={activeSlots.has(number)} aria-label={`${number} reais: ${activeSlots.has(number) ? "reservado" : "selecionar"}`}
-            aria-pressed={selected === String(number)} onClick={() => { setSelected(String(number)); setError(""); setNotice(""); }}>{number}</button>)}</div>
+            aria-pressed={selected === String(number)} onClick={() => { setSelected(String(number)); setError(""); setNotice(""); reservationForm.current?.focus(); }}>{number}</button>)}</div>
       </section>
       <div className="space-y-6">
-        <section className="panel"><h2>Reservar um número</h2>
+        <section ref={reservationForm} tabIndex={-1} className="panel reservation-form" aria-labelledby="reservation-title"><h2 id="reservation-title">Reservar um número</h2>
+          {Number.isInteger(Number(selected)) && Number(selected) >= 1 && Number(selected) <= 200 && <p role="status" className="prepared-note mt-4">Selecionado: {moneyFromCents(Number(selected) * 100)}. Escolha a conta e confirme a reserva.</p>}
+          <button type="button" className="text-link mt-3" onClick={() => (numberGrid.current?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]') ?? numberGrid.current?.querySelector<HTMLButtonElement>('button:not(:disabled)'))?.focus()}>Voltar aos números</button>
           <form className="form-stack" onSubmit={reserve}>
             <label>Número de 1 a 200<input name="number" type="number" min={1} max={200} step={1} required inputMode="numeric" value={selected} onChange={event => setSelected(event.target.value)} /></label>
             <label>Conta que guarda o dinheiro<select name="source" defaultValue="" required><option value="">Selecione</option>{writable.map(account => <option key={account.id} value={account.id}>{account.name} · livre {moneyFromCents(positionMap.get(account.id)?.available_cents ?? "0")}</option>)}</select></label>
-            <Button disabled={busy || !writable.length}>{busy ? "Reservando…" : "Reservar no banco"}</Button>
+            <p className="footnote">O dinheiro continua na conta. A reserva reduz apenas o saldo livre no app.</p>
+            <Button disabled={busy || !writable.length}>{busy ? "Reservando…" : "Confirmar reserva"}</Button>
             {!writable.length && <p className="footnote">Crie uma conta em <Link href="/financas">Finanças</Link> antes de reservar.</p>}
           </form>
         </section>

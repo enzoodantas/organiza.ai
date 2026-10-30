@@ -9,7 +9,7 @@ export function LoginForm() {
     e.preventDefault(); setPending(true); setError(""); const data = new FormData(e.currentTarget);
     try {
       const { error } = await browserClient().auth.signInWithPassword({ email: String(data.get("email")).trim(), password: String(data.get("password")) });
-      if (error) { setError("O Auth recusou este e-mail ou senha. Confira o endereço da conta local ou use ‘Esqueci minha senha’."); return; }
+      if (error) { setError("E-mail ou senha não conferem. Confira os dados e tente novamente."); return; }
       window.location.replace("/conta");
     } catch { setError("Não foi possível conectar ao serviço de autenticação."); }
     finally { setPending(false); }

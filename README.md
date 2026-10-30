@@ -2,7 +2,13 @@
 
 Fundação de uma plataforma de finanças pessoais e compartilhadas para casais, originalmente chamada **organiza.ai**. Nosso norte é ajudar na vida financeira e preparar o casamento. Mascotes e gamificação apoiarão hábitos saudáveis.
 
-**Sprint 02 em andamento: finanças persistentes no banco local para contas autenticadas.** Início, finanças e desafio usam dados reais apenas quando há sessão e vínculo ativo; sem sessão, continuam como demonstração fictícia. `/planejamento` guarda estimativas separadas de pagamentos e reservas efetivos. O fluxo real permite criar contas, registrar receitas/despesas/transferências, reservar números e reverter operações, com saldo livre calculado no banco. Antes de registrar valores pessoais, cada participante deve conferir contas, saldo inicial e data de corte. O schema remoto de desenvolvimento foi atualizado e a primeira publicação na Vercel Hobby foi concluída em 27/10/2026. O endereço publicado exige login; as duas contas, o vínculo, os 18 itens de planejamento e a conta financeira com saldo inicial foram migrados em 30/10/2026, preservando as senhas. Recuperação de senha por e-mail externo depende de SMTP.
+**Aplicação privada publicada para uso do casal:** [abrir Nosso Futuro](https://organiza-ai-rust.vercel.app). Início, Finanças e Desafios usam dados persistentes quando há sessão e vínculo ativo; Planejamento mantém estimativas separadas de pagamentos e reservas efetivos. Sem sessão, o ambiente local permite explorar uma demonstração fictícia; o endereço publicado exige login.
+
+Em 30/10/2026, as duas contas, o vínculo, os 18 itens de planejamento e a conta com saldo inicial foram migrados ao Supabase remoto, preservando as senhas. O usuário confirmou que conseguiu entrar com sua conta e com a de Letícia e que as fotos de perfil funcionaram. Essa confirmação cobre acesso e fotos; a observação dos demais fluxos continuará durante o uso.
+
+Disponível: contas, receitas, despesas, transferências, reservas e reversões; planejamento individual compartilhado para leitura; escolha de mascote, roupas, moedas virtuais e revisão semanal; fotos privadas de perfil. Antes de registrar movimentações, conferir conta, saldo inicial e data de corte.
+
+Pendências principais: configurar e validar recuperação de senha por e-mail externo, backup/restauração e exportação, regras de saída/retenção. A integração GitHub/Vercel foi conectada em 30/10/2026 após autorização do aplicativo no repositório; os pushes na branch de produção devem disparar a publicação no plano Hobby. O ambiente local e o online não sincronizam dados automaticamente.
 
 ## Executar localmente
 
@@ -21,18 +27,18 @@ Abrir http://localhost:3000, especialmente para autenticação (o mesmo host dev
 
 - Sem login: explorar o início, finanças e desafio fictícios, sem persistência.
 - Com login e vínculo: conferir contas/saldo livre, registrar e reverter receitas/despesas/transferências em `/financas` e reservar/reverter números em `/desafios`.
-- Perfil: alternar participante fictício e observar a restrição de edição individual.
+- Perfil e Minha conta: salvar, trocar ou remover sua foto privada e consultar o vínculo. O seletor de participante fictício existe apenas na demonstração.
 - Mascotes: escolha persistente de gato/cachorro, cinco roupas e chapéus, compras/equipamentos com moedas virtuais e revisão semanal (+5 moedas, +20 XP).
 
-O botão Registrar fica acessível no celular. Voz, itens, XP, moedas, missões e personalização não estão ativos.
+O atalho Registrar está disponível no celular. Moedas virtuais e XP vêm da revisão semanal autodeclarada do planejamento; roupas são cosméticas e não usam dinheiro real. Voz, IA, notificações, Realtime e operações offline não estão implementados.
 
 ## Supabase de desenvolvimento
 
 1. Este repositório já está vinculado a um projeto separado de desenvolvimento, criado pela CLI em São Paulo. Para criar outro ambiente, use uma organização Supabase e projeto exclusivamente de desenvolvimento.
 2. A configuração local da CLI está em `supabase/config.toml`. Para vincular outro projeto, autentique com `npx supabase login` e use `npx supabase link --project-ref SEU_PROJECT_REF`. Não coloque senha do banco no repositório.
-3. Em 27/10/2026, as oito migrations versionadas até `202610220006` estão aplicadas também ao projeto remoto de desenvolvimento; lint SQL remoto passou. Para aplicar novas migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
-4. `.env.local` aponta a aplicação para o Supabase local e contém somente a URL e a **publishable key** locais. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
-5. Cadastros públicos estão desativados por `[auth].enable_signup = false`. O provedor de e-mail deve continuar ativo com `[auth.email].enable_signup = true`; desativá-lo bloqueia também login por senha e recuperação (`email_provider_disabled`). As duas contas existem somente no Auth local. Perfis Enzo/gato e Letícia/cachorro foram provisionados localmente; ambos aceitaram o espaço “Nosso Futuro”. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
+3. Em 27/10/2026, as oito migrations versionadas até `202610220006` foram aplicadas também ao projeto remoto de desenvolvimento; em 30/10 foram aplicadas ainda `202610300001_mascot_wardrobe.sql` e `202610300002_profile_photos.sql`; lint SQL remoto passou. Para aplicar novas migrations, confira primeiro `npx supabase db push --dry-run`; só então rode `npx supabase db push`. O fluxo registra o histórico remoto. Não aplicar primeiro pelo SQL Editor nem apontar para produção.
+4. `.env.local` aponta a aplicação para o Supabase local com URL e **publishable key** locais; pode conter também metadados privados acrescentados pela CLI da hospedagem. Dados públicos do projeto remoto e credenciais administrativas ficam em `supabase/.env.local`, também ignorado pelo Git. Nunca utilizar `service_role`, secret key, senha PostgreSQL ou chave de IA nas variáveis `NEXT_PUBLIC_*`; não substituir os arquivos locais pelo exemplo.
+5. Cadastros públicos estão desativados por `[auth].enable_signup = false`. O provedor de e-mail deve continuar ativo com `[auth.email].enable_signup = true`; desativá-lo bloqueia também login por senha e recuperação (`email_provider_disabled`). As duas contas existem no ambiente local e foram migradas ao remoto em 30/10/2026, com perfis e vínculo ativo. A escolha de mascote é individual e alterável. O Mailpit local está em http://127.0.0.1:54324; não envia mensagens aos provedores de e-mail externos.
 6. `/entrar` permite login por e-mail/senha e oferece `/recuperar-senha`. Em ambiente local, o link de recuperação chega ao Mailpit em `http://127.0.0.1:54324`; a confirmação abre `/nova-senha`. Em `/conta`, cada pessoa vê seu perfil e o vínculo ativo. O fluxo genérico permite criar perfil, espaço e convite pelo aplicativo; um convite pendente expira em 30 dias. `/planejamento` permite que cada pessoa edite suas próprias estimativas mensais e leia as do casal. Início, finanças e desafio consultam o banco local quando a sessão e o vínculo estão ativos. O onboarding e o planejamento não registram pagamentos ou aportes.
 7. Inicie o conjunto leve de serviços necessários ao banco e Auth:
 
@@ -67,11 +73,11 @@ Playwright inicia `npm start`; exige build já gerado e porta 3000 livre. Execut
 
 Para usar um Chrome já instalado, definir `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` com o caminho do executável. Neste ambiente: `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm run test:e2e`.
 
-Resultados e limitações em [VALIDATION](docs/VALIDATION.md). A base PWA possui manifest, ícones e metadados; sem cache financeiro offline ou sincronização de operações.
+Resultados e limitações em [VALIDATION](docs/VALIDATION.md). A revisão de intuitividade e a lista de observações para o uso estão em [Relatório UX/UI](docs/UX_UI_REVIEW.md). A base PWA possui manifest, ícones e metadados; sem cache financeiro offline ou sincronização de operações.
 
 ## Publicar para uso do casal
 
-Primeira publicação: https://organiza-ai-rust.vercel.app, projeto `organiza-ai`, espaço Vercel Hobby. Produção/preview usam o Supabase remoto e `APP_PRIVATE=true`; visitantes são enviados a `/entrar`. `APP_URL` usa a origem pública. O ambiente local mantém sua demonstração e o Supabase local. O vínculo automático com GitHub ainda precisa ser autorizado no provedor; esta primeira publicação foi feita diretamente pela CLI.
+Primeira publicação: https://organiza-ai-rust.vercel.app, projeto `organiza-ai`, espaço Vercel Hobby. Produção/preview usam o Supabase remoto e `APP_PRIVATE=true`; visitantes são enviados a `/entrar`. `APP_URL` usa a origem pública. O ambiente local mantém sua demonstração e o Supabase local. A primeira publicação foi feita diretamente pela CLI. Em 30/10/2026, o repositório GitHub `enzoodantas/organiza.ai` foi conectado ao projeto Vercel para publicação automática a partir da branch de produção `main`.
 
 A publicação exige um servidor Node.js 24 (Azure App Service, Vercel ou equivalente) e Supabase remoto ativo. `npm run build` usa Webpack; `npm run build:deploy` gera a saída standalone para hospedagem Node. A migração autorizada de 30/10/2026 levou as duas contas existentes e o planejamento ao remoto; novos dados locais não são sincronizados automaticamente.
 
@@ -79,7 +85,7 @@ A publicação exige um servidor Node.js 24 (Azure App Service, Vercel ou equiva
 2. Configurar SMTP externo no Auth, manter cadastro público desativado e provedor de e-mail ativo. Definir **Site URL** como a origem HTTPS final e permitir o retorno exato `/auth/callback?next=/nova-senha`. Configurar templates de convite e recuperação com os arquivos em `supabase/templates/`. Não executar `supabase config push` com o config local, que aponta para localhost.
 3. Definir no ambiente de build e runtime `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` do remoto e `APP_URL` com a origem pública final. Não usar `.env.local` do desenvolvimento. Nunca usar chave administrativa em variáveis públicas.
 4. Executar `npm run deploy:check`, `npm run build:deploy` e `npm run deploy:package`. O primeiro verifica configuração e disponibilidade do Auth; não substitui teste de migrações, SMTP ou login. O pacote fica em `.deploy/release-<instante>/`, sem arquivos de contexto/ambiente. Na hospedagem Node, iniciar na raiz do pacote com `HOSTNAME=0.0.0.0 PORT=8080 node server.js`, ajustando a porta ao provedor. No Vercel, usar integração Next e `npm run build`, com as mesmas variáveis remotas.
-5. Validar login e recuperação das duas pessoas, consentimento do vínculo, contas/saldos/data de corte e registro/reversão de operação sintética. Confirmar o procedimento de backup/exportação e saída/retenção antes de importar histórico pessoal.
+5. Login das duas contas e fotos foram confirmados pelo usuário em 30/10/2026. Ainda validar recuperação externa, conferir contas/saldos/data de corte e observar registro/reversão no uso do casal. Confirmar o procedimento de backup/exportação e saída/retenção antes de importar histórico pessoal.
 
 No plano gratuito do Supabase, manter backups externos com `supabase db dump` e testar restauração em ambiente isolado. Exportação de dados da aplicação não substitui um backup completo de Auth/schema/dados. Referências: [SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [backups](https://supabase.com/docs/guides/platform/backups), [Next standalone](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).
 

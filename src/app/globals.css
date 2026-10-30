@@ -81,3 +81,31 @@ footer { max-width:1260px;margin:auto;padding:20px 46px 28px;border-top:1px soli
 .profile-member-list { display:flex; gap:18px; flex-wrap:wrap; }
 .profile-member { display:flex; align-items:center; gap:10px; }
 @media(max-width:600px) { .profile-photo-controls { align-items:flex-start; flex-direction:column; gap:16px; } .profile-photo-controls .form-stack { width:100%; } }
+
+/* Usabilidade: instruções legíveis e ações com contexto. */
+.footnote,.prepared-note,.demo-notice { font-size:12px; color:#52634c; line-height:1.7; }
+.stat-card small,.entry-list small,.contribution-list small,.ledger-account small { font-size:12px; color:#596850; }
+.stat-card>span { color:#596850; }
+.stat-card.balance>span,.stat-card.balance small { color:#e2eadb; }
+.plan-item-form { align-items:end; }
+.plan-item-form label { display:flex; flex-direction:column; gap:7px; min-width:0; font-size:12px; color:#52634c; }
+.plan-item-form label input,.plan-item-form label select { font-size:14px; }
+.plan-item-form button,.entry-list button,.contribution-list button { min-height:44px; font-size:12px; }
+.plan-feedback { grid-column:1/-1; font-size:13px; line-height:1.7; }
+.plan-feedback .form-error,.plan-feedback .form-success { font-size:13px; }
+.text-link { padding:8px 0; min-height:44px; color:var(--primary); text-decoration:underline; text-underline-offset:3px; }
+#revisao,.reservation-form { scroll-margin-block:24px; }
+@media(max-width:1150px) { .plan-item-form label:first-child { grid-column:1/-1; } }
+@media(max-width:800px) {
+ .mobile-nav { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:2px; padding-inline:6px; }
+ .mobile-nav>a { min-width:0; min-height:48px; font-size:11px; color:#52634c; }
+ .demo-notice { font-size:12px; }
+ .page-description { font-size:14px; }
+ .stat-card small { font-size:12px; }
+}
+@media(max-width:600px) {
+ .plan-item-form label input,.plan-item-form label select { font-size:16px; }
+ .hero-copy p { font-size:13px; }
+ .section-title>a { font-size:12px; }
+ .participant-progress { font-size:13px; }
+}

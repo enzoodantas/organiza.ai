@@ -54,7 +54,7 @@ export function MascotWardrobe({ userId, people, catalog, owned, coins, xp, revi
       <h2>{person.display_name}</h2>
       {person.id === userId ? <div className="form-stack mt-4"><label htmlFor="mascot-species">Seu mascote</label><select id="mascot-species" disabled={pending} value={me?.mascot} onChange={event => mutate({ kind: "species", species: event.target.value as "cat" | "dog" })}><option value="cat">Gato</option><option value="dog">Cachorro</option></select><p className="footnote">A escolha é sua. Vocês podem usar a mesma espécie; roupas, moedas e XP são preservados.</p></div> : <p className="muted mt-3">Cada pessoa cuida do próprio mascote.</p>}
     </section>)}</div>
-    <section className="panel mt-6" aria-labelledby="review-title">
+    <section id="revisao" tabIndex={-1} className="panel mt-6" aria-labelledby="review-title">
       <span className="small-tag">UM CUIDADO POR SEMANA</span><h2 id="review-title" className="mt-3">Planejar também merece carinho.</h2>
       <p className="muted mt-3">Confira as estimativas, converse sobre o que mudou e reconheça esse cuidado. A revisão é uma confirmação sua, sem meta de gasto ou de economia.</p>
       <div className="wardrobe-balance"><strong>{coins} moedas virtuais</strong><span>Nível {Math.floor(xp / 100) + 1} · {xp} XP</span></div>
@@ -68,7 +68,7 @@ export function MascotWardrobe({ userId, people, catalog, owned, coins, xp, revi
         return <article className="wardrobe-item" key={item.id}><Mascot animal={me?.mascot ?? "cat"} items={[item.id]} /><h3>{item.name}</h3><p className="footnote">{item.slot === "hat" ? "Chapéu" : "Roupa"} · {mine ? "No seu guarda-roupa" : `${item.price} moedas virtuais`}</p>
           {mine ? <Button variant="outline" disabled={pending} onClick={() => mutate({ kind: "equip", item: item.id, wear: !mine.equipped })}>{mine.equipped ? "Guardar" : "Vestir"}<span className="sr-only"> {item.name}</span></Button>
             : confirmItem === item.id ? <div className="form-stack"><p>Usar {item.price} moedas nesta peça?</p><Button disabled={pending} onClick={() => mutate({ kind: "buy", item: item.id })}>Confirmar compra<span className="sr-only"> {item.name}</span></Button><Button variant="ghost" disabled={pending} onClick={() => setConfirmItem(null)}>Cancelar</Button></div>
-            : <Button variant="outline" disabled={pending || coins < item.price} onClick={() => setConfirmItem(item.id)}>Comprar<span className="sr-only"> {item.name}</span></Button>}
+            : <><p className="footnote" id={`price-help-${item.id}`}>{coins < item.price ? `Faltam ${item.price - coins} moedas. A revisão semanal rende 5 moedas.` : "Disponível com suas moedas virtuais."}</p><Button aria-describedby={`price-help-${item.id}`} variant="outline" disabled={pending || coins < item.price} onClick={() => setConfirmItem(item.id)}>Comprar<span className="sr-only"> {item.name}</span></Button></>}
         </article>;
       })}</div>
       <p className="footnote mt-6">Moedas são apenas virtuais: não usam seu saldo financeiro, não podem ser compradas com dinheiro, transferidas ou sacadas. As peças são cosméticas e não dão vantagens financeiras.</p>
