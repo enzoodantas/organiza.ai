@@ -1,3 +1,4 @@
+import { listContributions } from "@/lib/finance/queries";
 import { ChallengeView } from "@/components/challenge-view";
 import { RealChallengeView } from "@/components/real-challenge-view";
 import { serverClient } from "@/lib/supabase/server";
@@ -20,8 +21,7 @@ export default async function Page() {
   const [accountsResult, positionsResult, contributionsResult, campaignResult, membersResult] = await Promise.all([
     supabase.from("accounts").select("id,owner_id,name,scope").eq("relationship_id", relationshipId).order("name"),
     supabase.rpc("list_account_positions", { target_relationship: relationshipId }),
-    supabase.from("contributions").select("id,participant_id,source_account_id,slot,amount_cents,reversed_at,created_at")
-      .eq("relationship_id", relationshipId).order("created_at", { ascending: false }).limit(300),
+    listContributions(supabase, relationshipId),
     supabase.from("campaigns").select("id").eq("relationship_id", relationshipId).eq("rules->>type", "number_grid").maybeSingle(),
     supabase.from("relationship_members").select("user_id").eq("relationship_id", relationshipId).is("revoked_at", null),
   ]);

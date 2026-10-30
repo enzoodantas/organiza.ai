@@ -45,7 +45,8 @@ Pendências, em ordem de execução:
 - [x] Implementar no banco local RPCs transacionais para contas, receitas/despesas, transferências, reservas e reversões, com autorização no banco e auditoria.
 - [ ] Após as RPCs e onboarding, importar de forma revisável os lançamentos do último mês a partir do extrato fornecido pelo casal; confirmar categorias, contas, duplicidades e totais antes de gravar.
 - [x] Validar no Supabase local saldo livre por conta, centavos, escopos, idempotência, isolamento e duas despesas concorrentes. Escrita direta nas tabelas permanece bloqueada.
-- [ ] Integrar os tipos já gerados do banco aos clientes Supabase e concluir revisão das telas autenticadas. Início, finanças e desafio já leem/escrevem no banco local; visitantes continuam em demonstração sinalizada. Teste SQL cobriu dois casais; smoke de navegador cobriu um usuário sintético e removeu suas fixtures.
+- [x] Integrar os tipos já gerados do banco aos clientes Supabase (browser, servidor e proxy).
+- [ ] Concluir revisão das telas autenticadas com as duas pessoas. Início, finanças e desafio já leem/escrevem no banco local; visitantes continuam em demonstração sinalizada. Teste SQL cobriu dois casais; smoke de navegador cobriu um usuário sintético e removeu suas fixtures.
 - [ ] Ligar e validar as assinaturas Realtime após o fluxo persistente estar seguro.
 - [ ] Acompanhar a correção dos cinco alertas da cadeia de desenvolvimento do lint e a compatibilidade para atualizar ESLint. Auditoria de produção desta entrega: zero alertas.
 - [ ] Validar instalação PWA em celular físico; offline e sincronização ainda não estão implementados.
@@ -118,3 +119,32 @@ Primeiro avaliar custo e privacidade. Implementar interpretação como proposta 
 - Convites, política futura de permissões e forma de exportação.
 
 Não preencher essas decisões com informações inventadas. A Sprint 01 deve continuar explorável sem elas.
+
+
+### Revisão orientada por referências — 27/10/2026
+
+Consultados pelo Context7 os projetos [Actual Budget](https://github.com/actualbudget/actual), via `/actualbudget/docs`, e [Firefly III](https://github.com/firefly-iii/firefly-iii), via `/firefly-iii/docs`; documentação de clientes tipados em `/supabase/ssr`. A seleção considera aderência a contas, orçamento e histórico financeiro, sem afirmar ranking universal. Foram aproveitados conceitos, sem importar código desses projetos ou substituir a arquitetura.
+
+- Actual: consulta por período e transferências entre contas sem criação de renda ([documentação](https://actualbudget.org/docs/transactions/transfers)).
+- Firefly III: orçamento separado das transações e identificação de origem/destino ([documentação](https://docs.firefly-iii.org/explanation/financial-concepts/budgets/)).
+- Aplicado: filtro de mês no resumo; histórico por mês, conta e tipo; leitura paginada além dos antigos limites de 200/300 registros; clientes tipados; proxy cobrindo páginas financeiras; remoção de saldo pessoal fixo da UI.
+
+Para uso diário do casal, a próxima sequência continua: conferir contas/saldos e data de corte, decidir saída/retenção e implementar exportação, validar ambas as sessões e preparar hospedagem/backup/recuperação de acesso. Não criar contas ou importar valores por suposição. Mascotes e casamento continuam parte da identidade; IA, integração bancária e expansão do RPG permanecem posteriores ao fluxo básico.
+
+
+### Banco remoto reativado e atualizado — 27/10/2026
+
+- Concluídos: reativação pelo usuário, backup privado do schema, dry-run, aplicação das cinco migrações pendentes até `202610220006`, conferência do histórico e lint SQL remoto sem erros.
+- Verificado: dados financeiros não acessíveis anonimamente (HTTP 401/42501); Auth responde, cadastro público desativado e provedor de e-mail remoto ainda desativado.
+- Próximo passo: definir hospedagem (pergunta enviada), habilitar provedor de e-mail preservando cadastro público fechado, configurar URLs/SMTP/templates e tratar usuários/dados locais de forma revisada. Publicação e teste de acesso das duas pessoas seguem pendentes.
+
+
+### Primeiro deploy gratuito concluído — 27/10/2026
+
+Usuário escolheu Vercel e custo zero. Criado projeto Hobby `organiza-ai`; deploy de produção READY em https://organiza-ai-rust.vercel.app. APP_PRIVATE exige login. Supabase remoto com provedor e-mail ativo, cadastro público fechado e URLs finais configuradas. Migrações já estavam aplicadas. Sem compra de domínio ou plano pago.
+
+Próximo passo pendente de resposta: migrar as duas contas com o planejamento atual ou somente as contas, preservando senhas. Nenhuma conta, hash ou valor foi copiado sem essa escolha. SMTP externo gratuito, teste de login das duas pessoas, backup/exportação e saída/retenção seguem por concluir. Conexão GitHub automática falhou por autorização do provedor; deploy direto pela CLI funcionou.
+
+## Atualização de entrega — 30/10/2026
+
+As duas contas de acesso, as senhas existentes, o vínculo, 18 estimativas e a conta financeira/saldo inicial foram migrados ao ambiente online por autorização do usuário. Não houve criação de lançamentos ou aportes. O seletor de espécie e o guarda-roupa persistentes foram implementados; esta atualização substitui as pendências anteriores sobre seleção e inventário cosmético. Regras, limites e validação estão em [MASCOTS.md](MASCOTS.md). A migração `202610300001` foi aplicada localmente e ao remoto; lint remoto sem erros. Realtime, funcionamento offline, exportação/backup, saída/retenção e recuperação externa continuam pendentes.

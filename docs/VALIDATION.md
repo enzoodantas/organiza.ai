@@ -87,3 +87,59 @@ Atualização de requisito na Sprint 01: `202610210002_mascot_species.sql` foi a
 - Autenticação configurada não muda a origem dos dados financeiros: todas as áreas seguem em demo com aviso persistente.
 
 Próxima entrega: aceitar os convites locais e validar login/sessão; provisionar perfis e vínculo do casal com consentimento de ambos. Em seguida, implementar importação revisável do último mês sobre RPCs transacionais e auditoria. Nenhum arquivo de extrato foi recebido nesta tarefa e ainda não existe fluxo seguro para importar ou gravar lançamentos reais.
+
+
+## Revisão por Context7 — 27/10/2026
+
+- TypeScript e ESLint passaram; `git diff --check` sem erros.
+- Vitest: 37 testes passaram. Novos cenários cobrem histórico de 503 registros sob limite menor do servidor, falha intermediária sem resultados parciais, páginas sobrepostas, filtros por mês/conta/tipo e exclusão de transferências/reversões dos totais mensais.
+- Build `npx next build --webpack` passou fora do sandbox. Dentro dele, houve falha do subprocesso ao interpretar `tsc --showConfig`; a execução externa resolveu.
+- Playwright com Chrome instalado: 10/10 cenários da demonstração passaram em mobile/desktop, incluindo 320 px, navegação, registros/reversões e PWA.
+- Não executados nesta rodada: smoke autenticado com banco, expiração real de sessão das duas pessoas, suítes SQL ou revisão em celular físico. As telas autenticadas receberam testes de componentes com fixtures sintéticas; isso não substitui aceite das duas sessões.
+- Nenhuma migração, gravação de dados pessoais, publicação ou alteração remota. Para evolução de relatórios grandes/concorrentes, consultar os limites da leitura paginada em ARCHITECTURE.md.
+
+
+## Preparação de deploy — 27/10/2026
+
+- `npm run build` final (Webpack, saída padrão) passou; configuração standalone também compilou durante a preparação. `build:deploy` ativa standalone explicitamente, mantendo `npm start` compatível com o build padrão.
+- TypeScript, ESLint, 40 testes Vitest e `npm run test:deployment` passaram. Os testes de deploy recusam localhost/URL privada/chave administrativa, verificam cópia de assets sem arquivos privados e rejeitam pacote de outro destino. Callback PKCE testado para recuperação, código expirado, bloqueio de redirecionamento externo e origem pública atrás de proxy.
+- Playwright: 10 cenários da demonstração passaram em mobile/desktop durante a preparação standalone. O start dessa configuração emitiu aviso, resolvido ao tornar standalone exclusivo de `build:deploy`; o build padrão final passou depois da correção.
+- Consultas remotas somente de leitura: projeto Supabase vinculado retornou `INACTIVE`; conexão SQL remota falhou com tenant indisponível. Migrações remotas não puderam ser reconferidas nessa sessão. Azure autenticado, sem App Service para este app. GitHub autenticado após consulta com rede fora do sandbox.
+- Não houve deploy, reativação de projeto, criação de infraestrutura, aplicação de migração remota, convite externo, configuração SMTP, migração de dados ou commit/push. A hospedagem foi perguntada ao usuário e ainda não escolhida. Aprovação de custos não foi presumida.
+- Scripts e procedimento de publicação estão no README. Antes de considerar o app online funcional: Supabase ativo e migrado, hospedagem escolhida, SMTP/URLs/templates configurados, contas e dados locais tratados por migração revisada ou onboarding remoto consentido, login/recuperação das duas pessoas validados e backup/exportação/saída definidos.
+
+
+## Supabase reativado e schema remoto atualizado — 27/10/2026
+
+Após o usuário reativar o projeto pelo painel, `projects list` confirmou ACTIVE_HEALTHY. O dry-run listou exatamente `202610220002` a `202610220006`. Salva cópia privada do schema anterior; `db push --yes` aplicou as cinco migrações sem seeds. `migration list --linked` confirmou oito versões locais/remotas coincidentes; `db lint --linked --fail-on error` sem erros.
+
+Verificações read-only HTTP: Auth health/settings 200; cadastro público desativado, provedor e-mail desativado. REST de accounts/financial_entries/monthly_plan_items/contributions rejeitou leitura anônima com 401 e código 42501. Uma primeira verificação via SDK não trouxe código de erro e foi substituída por requisições REST explícitas para distinguir autorização de falha de transporte.
+
+Não houve importação de usuários/valores locais, e-mail externo, alteração de configuração Auth, deploy ou criação de hospedagem. Nenhum código da aplicação foi modificado nesta rodada; testes/build frontend não repetidos. Estado remoto ativo não constitui validação de login remoto ou uso online das duas pessoas.
+
+
+## Vercel Hobby publicada — 27/10/2026
+
+- Conta autenticada por device flow; plano Hobby confirmado, sem projetos anteriores. Criado projeto organiza-ai com Node 24; variáveis remotas configuradas em production/preview, sem chaves administrativas.
+- Dry-run final: Next.js detectado, 73 arquivos, clientes/tipos Supabase incluídos e ambientes/contexto privado/dados locais excluídos. Corrigido padrão de ignore que inicialmente também excluía src/lib/supabase; nenhuma tentativa de build foi feita com aquele manifesto incorreto.
+- TypeScript, ESLint, 44 testes Vitest e teste de empacotamento/configuração de deploy passaram. Novos cenários verificam exigência de login, caminhos públicos de recuperação, modo demo local e falha fechada por ausência de configuração.
+- Vercel: build de produção compilou e passou TypeScript; estado READY. Domínio https://organiza-ai-rust.vercel.app; funções em gru1, máquina de build básica do plano.
+- HTTP sem sessão: /, /financas e /planejamento retornam 307 para /entrar; /entrar e /recuperar-senha retornam 200; /LOCAL_CONTEXT.md e /.env.local retornam 404. Respostas privadas/sem cache.
+- Auth público confirmou external.email=true e disable_signup=true após PATCH específico da API Management, preservando os demais ajustes. Site URL/allowlist usam o domínio final. SMTP personalizado ausente; não houve teste real de envio externo ou login das duas pessoas.
+- Nenhum usuário, hash de senha, planejamento ou saldo local foi migrado nesta etapa. Decisão de migração foi perguntada e segue pendente. GitHub automático não conectado; deploy direto autorizado pela CLI.
+
+
+Na QA visual do login em 320 px, identificado botão flutuante sobrepondo o submit. Corrigido ocultando ações financeiras e navegação mobile antes da autenticação no modo privado. Segundo deploy de produção READY (`dpl_7PK1Qxxm9x4fsGB6KyamdLQ5Nrtm`) compilou/validou TypeScript e preservou o mesmo domínio. Primeiro smoke Chrome do endereço público verificou formulário, recuperação sem enviar e-mail, ausência de nomes no shell e ausência de rolagem horizontal; não equivale a login autenticado. `.env.local` foi ajustado para modo 600 após a CLI adicionar token OIDC. Nenhuma migração de usuários/dados ocorreu.
+
+## Migração e guarda-roupa — 30/10/2026
+
+- Duas identidades importadas pelo Admin Auth preservando UUIDs e hashes; os hashes foram comparados sem exibição. Perfis, vínculo, 18 estimativas e conta/saldo inicial importados em transação, com comparação de todos os campos. Nenhum lançamento/aporte criado, nenhum e-mail enviado.
+- Context7 consultado para importação de hashes e segurança de funções SQL; documentação local do Next lida antes das alterações.
+- TypeScript, lint, 44 testes Vitest e teste Node de deploy passaram. Build local passou fora do sandbox após a falha conhecida no subprocesso showConfig.
+- Suíte SQL de guarda-roupa passou com fixtures e rollback; cobre deduplicação, saldo, propriedade, espécie, slots, escrita direta, parceiro, estranho, revogação e anônimo.
+- Smoke autenticado local passou com conta sintética criada/removida: oito revisões concorrentes premiam uma vez; oito retries de compra debitam uma vez; duas compras distintas disputam o mesmo saldo sem excedê-lo. Navegador validou confirmação de compra, vestir, troca de espécie, reload, dashboard e 320 px, sem erros JavaScript. O primeiro smoke detectou associação ambígua do label do seletor; corrigido com id/htmlFor e repetido com sucesso.
+- Dez cenários Playwright mobile/desktop da demonstração passaram.
+- Dry-run remoto listou apenas `202610300001_mascot_wardrobe.sql`; aplicada pela CLI e lint remoto sem erros.
+- Publicação concluída na Vercel: `dpl_EoJR3KvWZaxuV4vGPwwhbNonx3sE`, estado READY; build cloud e TypeScript passaram, domínio público atualizado. A primeira tentativa falhou na conexão; a segunda concluiu. Diagnóstico identificou timeout em conexões diretas do Node; inspeções posteriores usaram o proxy do ambiente.
+- Smoke no domínio de produção passou para as duas contas com sessões temporárias verificadas pelo Auth (sem envio de e-mail): cada uma leu os 18 itens, dois perfis/membros e uma conta financeira; seis rotas autenticadas e o guarda-roupa abriram em 320 px sem erros de carregamento ou JavaScript. Sessões de teste encerradas individualmente. Anônimo redirecionado à entrada; `.env.local`, `LOCAL_CONTEXT.md` e `AGENTS.md` retornaram 404.
+- Limites: não foi digitada a senha pessoal de nenhuma conta; preservação dos hashes e acesso por sessões temporárias foram verificados separadamente. SMTP/recuperação externa, exportação/backup e saída/retenção continuam pendentes. Nenhum commit/push realizado nesta rodada.

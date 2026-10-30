@@ -1,0 +1,21 @@
+# Deployment contains application source only. Local data and credentials stay here.
+.git
+.next
+.deploy
+.supabase
+.vercel
+node_modules
+AGENTS.md
+LOCAL_CONTEXT.md
+**/AGENTS.md
+**/LOCAL_CONTEXT.md
+.env*
+**/.env*
+/supabase/
+tests
+docs
+assets
+playwright-report
+test-results
+coverage
+*.tsbuildinfo

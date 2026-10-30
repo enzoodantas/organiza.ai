@@ -2,7 +2,7 @@
 
 ## Estado da fundação
 
-Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts permanece na demonstração anônima. Um projeto Supabase remoto de desenvolvimento em `sa-east-1` foi provisionado e vinculado pela CLI. Para uso diário, `.env.local` aponta ao stack Docker local rootless, mantido leve com Postgres, Auth, REST, Kong e Mailpit. Chaves e senha do banco ficam somente em arquivo local ignorado pelo Git. Sessões autenticadas com vínculo ativo já usam o banco local em início, finanças e desafio; o remoto ainda não recebeu as migrações dessa fase.
+Aplicação Next.js App Router, React e TypeScript strict. UI mobile-first em Tailwind 4, configuração shadcn/ui e Button local no padrão shadcn (Radix Slot, CVA, classes mescladas); nenhum pacote monolítico de componentes. Motion respeita movimento reduzido. Recharts permanece na demonstração anônima. Um projeto Supabase remoto de desenvolvimento em `sa-east-1` foi provisionado e vinculado pela CLI. Para uso diário, `.env.local` aponta ao stack Docker local rootless, mantido leve com Postgres, Auth, REST, Kong e Mailpit. Chaves e senha do banco ficam somente em arquivo local ignorado pelo Git. Sessões autenticadas com vínculo ativo já usam o banco local em início, finanças e desafio; o schema remoto também recebeu as migrações dessa fase em 27/10/2026, enquanto a aplicação e os dados pessoais continuam locais.
 
 ## Estrutura
 
@@ -16,7 +16,7 @@ src/
     ai/                 contrato de interpretação; sem provedor
     demo/               fixtures explicitamente fictícias
     supabase/           configuração e clientes browser/servidor
-  proxy.ts              renovação de sessão nas rotas de autenticação
+  proxy.ts              renovação de sessão nas rotas de autenticação e financeiras
 supabase/
   migrations/           tabelas, constraints, índices, RLS, auditoria e validação da campanha
   tests/                contrato SQL de isolamento para ambiente descartável
@@ -137,3 +137,41 @@ Registro npm consultado em 21/10/2026 antes da instalação: Node local 24.21.0;
 - [Supabase: clientes SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs)
 - [shadcn/ui: instalação manual](https://ui.shadcn.com/docs/installation/manual)
 - [Next.js: PWA](https://nextjs.org/docs/app/guides/progressive-web-apps)
+
+
+## Revisão de consultas e tipos — 27/10/2026
+
+Clientes browser/servidor/proxy usam os tipos gerados. `types.ts` corrige somente a nulabilidade dos argumentos de origem/destino da RPC de lançamento, conforme o contrato SQL; o arquivo gerado fica intacto. Alguns tipos de apresentação ainda restringem strings do banco conforme seus CHECKs.
+
+`finance/queries.ts` lê lançamentos e reservas em páginas, com desempate por ID, para não usar somente os primeiros 200/300 registros nos totais e na grade. Erros descartam resultados parciais; sobreposição de IDs durante leitura também falha, evitando duplicação. Filtros de período/conta/tipo são locais após leitura autorizada por RLS. Reversões permanecem visíveis; receitas/despesas excluem reversões e transferências; saldo livre e meta não dependem do mês selecionado.
+
+Limite: várias requisições não constituem snapshot transacional, e o custo cresce com o histórico. Para históricos grandes e consistência de relatórios sob alterações simultâneas, evoluir para agregações SQL e paginação de histórico no servidor. A autorização e a validação de cada escrita permanecem transacionais no banco.
+
+
+## Preparação de publicação — 27/10/2026
+
+O build padrão usa Webpack; `build:deploy` ativa saída standalone Node. O start aceita conexões em `0.0.0.0` e a porta da plataforma. `build:deploy` exige URL Supabase hospedada, chave pública e `APP_URL` HTTPS; registra a identidade do build e um hash da chave pública. `deploy:package` confere essa identidade, copia runtime/assets para uma pasta única em `.deploy/` e exclui arquivos `.env*`, Git e contexto privado. Não usar o build local diretamente no ambiente online: variáveis `NEXT_PUBLIC_*` são fixadas durante o build.
+
+A recuperação suporta o template próprio com `token_hash` e o callback PKCE `/auth/callback?next=/nova-senha`. O callback aceita somente destinos internos predeterminados, usa `APP_URL` quando configurada e retorna respostas sem cache. O template de convite próprio está em `supabase/templates/invite.html`; ambos os templates devem ser configurados no Auth remoto. SMTP externo continua necessário para convite e recuperação por e-mail de ambos os participantes.
+
+Ver procedimento de publicação no README. Preparação de código não reativa projeto pausado, não aplica migrações, não transfere usuários/dados e não cria infraestrutura automaticamente.
+
+
+### Estado remoto confirmado após reativação — 27/10/2026
+
+Projeto remoto reativado pelo usuário, estado ACTIVE_HEALTHY. As cinco migrações pendentes de onboarding, planejamento e operações financeiras foram aplicadas após dry-run e cópia do schema anterior; histórico remoto agora coincide com as oito migrações locais. Lint SQL remoto sem erros. Nenhum dado financeiro ou usuário local foi importado. Leitura anônima de accounts, financial_entries, monthly_plan_items e contributions negada pelo REST com HTTP 401/código PostgreSQL 42501.
+
+Auth health/settings retornam 200. Cadastro público continua desativado, mas o provedor de e-mail remoto está desativado (`external.email=false`); precisa ser habilitado antes de login por senha, preservando o bloqueio de cadastro público. URLs públicas, SMTP e templates dependem da preparação do ambiente final. `.env.local` segue apontando ao banco local.
+
+
+## Primeira publicação Vercel Hobby — 27/10/2026
+
+Projeto `organiza-ai`, domínio de produção `https://organiza-ai-rust.vercel.app`, Node 24, build Webpack e funções na região `gru1` junto ao banco de São Paulo. Variáveis de produção e preview: URL/chave pública do Supabase remoto, APP_URL e APP_PRIVATE=true. Nenhuma chave administrativa foi enviada. O proxy privado exige sessão nas áreas do casal, mantém os caminhos de autenticação públicos e retorna 503 se a configuração estiver ausente. Páginas continuam verificando usuário no servidor e o banco aplica RLS/autorização das RPCs. A demonstração local continua disponível com APP_PRIVATE ausente.
+
+`.vercelignore` exclui dados/configuração local do Supabase, contexto privado, ambientes e resultados de testes. O padrão de exclusão da pasta Supabase é ancorado na raiz para preservar `src/lib/supabase`. Manifesto dry-run conferiu 73 arquivos e a presença dos clientes/tipos. `.vercel` está ignorado no Git; o vínculo da CLI acrescentou VERCEL_OIDC_TOKEN ao `.env.local`, que permanece privado e não é enviado.
+
+Auth remoto: provedor e-mail habilitado, cadastro público bloqueado, Site URL e allowlist configurados para a produção. Credencial da sessão da CLI reutilizada em memória pela API oficial de Management; nenhuma credencial foi impressa ou gravada em código. SMTP personalizado ainda ausente; as duas contas e o planejamento não foram migrados sem a escolha do usuário. Login remoto das pessoas não foi declarado validado.
+
+## Estado atualizado — 30/10/2026
+
+A migração autorizada das duas identidades e dados locais foi concluída: perfis, espaço/membros, 18 estimativas, conta e saldo inicial, com UUIDs e hashes de senha preservados. Nenhuma sessão local foi copiada. O schema remoto inclui as operações financeiras e a nova migração `202610300001_mascot_wardrobe.sql`. A seleção de espécie deixou de ser apenas planejada: UI persistente em `/mascotes`, aparência compartilhada com o dashboard e rótulos independentes de espécie/dono. A economia cosmética efetiva e seus limites estão em [MASCOTS.md](MASCOTS.md); as seções históricas acima descrevem etapas anteriores.

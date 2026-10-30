@@ -1,4 +1,5 @@
 "use client";
+import { listContributions } from "@/lib/finance/queries";
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
@@ -37,8 +38,7 @@ export function RealChallengeView({ relationshipId, userId, names,
   async function refresh() {
     const supabase = browserClient();
     const [contributionsResult, positionsResult] = await Promise.all([
-      supabase.from("contributions").select("id,participant_id,source_account_id,slot,amount_cents,reversed_at,created_at")
-        .eq("relationship_id", relationshipId).order("created_at", { ascending: false }).limit(300),
+      listContributions(supabase, relationshipId),
       supabase.rpc("list_account_positions", { target_relationship: relationshipId }),
     ]);
     if (contributionsResult.error || positionsResult.error)

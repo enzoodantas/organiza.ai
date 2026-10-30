@@ -1,33 +1,41 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Heart, Leaf } from "lucide-react";
 import { challengeTotalCents } from "@/domain/challenge";
 import { moneyFromCents } from "@/domain/finance";
-import { type AccountPosition, type FinancialEntry, type NumberContribution } from "@/lib/finance/records";
+import { type AccountPosition, type FinancialEntry, type NumberContribution, localToday } from "@/lib/finance/records";
 import { Button } from "./ui/button";
 import { Mascot } from "./mascot";
 import { PageHeading, Progress } from "./primitives";
+import type { MascotPerson } from "@/lib/mascots";
 
-export function RealDashboard({ positions, entries, contributions }: {
+export function RealDashboard({ positions, entries, contributions, people = [] }: {
+  people?: MascotPerson[];
   positions: AccountPosition[];
   entries: FinancialEntry[];
   contributions: NumberContribution[];
 }) {
+  const [month, setMonth] = useState(localToday().slice(0, 7));
   const balance = positions.reduce((sum, item) => sum + BigInt(item.balance_cents), 0n);
   const reserved = positions.reduce((sum, item) => sum + BigInt(item.reserved_cents), 0n);
   const activeEntries = entries.filter(item => !item.reversed_at);
-  const income = activeEntries.filter(item => item.kind === "income")
+  const periodEntries = activeEntries.filter(item => !month || item.occurred_on.startsWith(month));
+  const income = periodEntries.filter(item => item.kind === "income")
     .reduce((sum, item) => sum + BigInt(item.amount_cents), 0n);
-  const expense = activeEntries.filter(item => item.kind === "expense")
+  const expense = periodEntries.filter(item => item.kind === "expense")
     .reduce((sum, item) => sum + BigInt(item.amount_cents), 0n);
   const activeContributions = contributions.filter(item => !item.reversed_at);
   const saved = activeContributions.reduce((sum, item) => sum + BigInt(item.amount_cents), 0n);
   return <>
-    <PageHeading eyebrow="NOSSA JORNADA COMEÇA AQUI" title="Cuidar do hoje. Sonhar a dois." description="Seu resumo financeiro salvo no banco local." />
+    <PageHeading eyebrow="NOSSA JORNADA COMEÇA AQUI" title="Cuidar do hoje. Sonhar a dois." description="Seu resumo financeiro salvo no seu espaço." />
     <section className="hero-card">
       <div className="hero-copy"><span className="soft-tag"><Heart size={13} /> NOSSO GRANDE PLANO</span><h2>O próximo capítulo<br />é construído juntos.</h2><p>Pequenos passos reais para o nosso futuro.</p><Button asChild><Link href="/desafios">Cuidar da nossa meta <ArrowUpRight size={17} /></Link></Button></div>
-      <div className="hero-scene"><div className="scene-sun" /><div className="scene-hill" /><div className="scene-house"><span>♡</span></div><Mascot animal="cat" className="hero-cat" /><Mascot animal="dog" className="hero-dog" /><span className="scene-caption">JUNTOS, NO MESMO CAMINHO</span></div>
+      <div className="hero-scene"><div className="scene-sun" /><div className="scene-hill" /><div className="scene-house"><span>♡</span></div>{people.slice(0, 2).map((person, index) => <Mascot key={person.id} animal={person.mascot} name={person.display_name} items={person.items} className={index === 0 ? "hero-cat" : "hero-dog"} />)}<span className="scene-caption">JUNTOS, NO MESMO CAMINHO</span></div>
     </section>
     <div className="section-title"><h2>Nosso dinheiro, com clareza</h2><Link href="/financas">Ver finanças <ChevronRight size={15} /></Link></div>
+    <div className="form-stack mb-4"><label>Mês das receitas e despesas<input type="month" value={month} onChange={event => setMonth(event.target.value)} /></label><p className="footnote">{month ? "Entradas e saídas do mês selecionado." : "Entradas e saídas de todo o histórico."} Saldo livre e meta consideram todas as movimentações.</p></div>
     <section className="stat-grid" aria-label="Resumo financeiro salvo">
       <article className="stat-card balance"><span>Saldo livre <Leaf size={17} /></span><strong>{moneyFromCents(balance - reserved)}</strong><small>Saldo das contas menos reservas ativas</small></article>
       <article className="stat-card"><span>Receitas registradas <ArrowDownLeft className="positive" size={18} /></span><strong>{moneyFromCents(income)}</strong><small>Não inclui saldos iniciais nem transferências</small></article>

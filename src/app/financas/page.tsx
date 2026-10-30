@@ -1,3 +1,4 @@
+import { listEntries } from "@/lib/finance/queries";
 import { FinanceView } from "@/components/finance-view";
 import { RealFinanceView } from "@/components/real-finance-view";
 import { serverClient } from "@/lib/supabase/server";
@@ -21,8 +22,7 @@ export default async function Page() {
   const [accountsResult, positionsResult, entriesResult, openingResult, membersResult] = await Promise.all([
     supabase.from("accounts").select("id,owner_id,name,scope").eq("relationship_id", relationshipId).order("name"),
     supabase.rpc("list_account_positions", { target_relationship: relationshipId }),
-    supabase.from("financial_entries").select("id,owner_id,scope,kind,amount_cents,source_account_id,destination_account_id,description,occurred_on,reversed_at,created_at")
-      .eq("relationship_id", relationshipId).order("occurred_on", { ascending: false }).order("created_at", { ascending: false }).limit(200),
+    listEntries(supabase, relationshipId),
     supabase.from("account_opening_balances").select("account_id,amount_cents,noted_on").eq("relationship_id", relationshipId),
     supabase.from("relationship_members").select("user_id").eq("relationship_id", relationshipId).is("revoked_at", null),
   ]);

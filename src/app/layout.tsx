@@ -8,5 +8,5 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await serverClient();
   const { data } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  return <html lang="pt-BR"><body><DemoProvider><Shell initialAuthenticated={!!data.user}>{children}</Shell></DemoProvider></body></html>;
+  return <html lang="pt-BR"><body><DemoProvider><Shell initialAuthenticated={!!data.user} privateApp={process.env.APP_PRIVATE === "true"}>{children}</Shell></DemoProvider></body></html>;
 }

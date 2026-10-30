@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase/client";
+import type { AppDatabase } from "@/lib/supabase/types";
 import { Button } from "./ui/button";
 
 type Invitation = {
@@ -26,7 +27,9 @@ export function AccountOnboarding({ email, profile, relationship, members, invit
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
-  async function callRpc(name: string, parameters: Record<string, string>) {
+  async function callRpc<Name extends "create_profile" | "create_relationship" | "invite_partner" | "accept_relationship_invitation" | "decline_relationship_invitation">(
+    name: Name, parameters: AppDatabase["public"]["Functions"][Name]["Args"],
+  ) {
     setPending(true);
     setError("");
     try {

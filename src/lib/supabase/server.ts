@@ -1,3 +1,4 @@
+import type { AppDatabase } from "@/lib/supabase/types";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { supabaseConfig } from "./config";
@@ -5,7 +6,7 @@ export async function serverClient() {
   const config = supabaseConfig();
   if (!config) return null;
   const store = await cookies();
-  return createServerClient(config.url, config.key, { cookies: {
+  return createServerClient<AppDatabase>(config.url, config.key, { cookies: {
     getAll: () => store.getAll(),
     setAll(items) {
       try { items.forEach(({ name, value, options }) => store.set(name, value, options)); }

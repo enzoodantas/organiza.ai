@@ -8,11 +8,15 @@
   },
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
-    "start": "next start --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 0.0.0.0",
+    "deploy:check": "node scripts/check-deployment.mjs",
+    "build:deploy": "node scripts/build-deployment.mjs",
+    "deploy:package": "node scripts/package-deployment.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:deployment": "node --test tests/deployment.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm test && npm run build"

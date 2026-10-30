@@ -1,4 +1,5 @@
 "use client";
+import { listEntries } from "@/lib/finance/queries";
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
@@ -36,6 +37,9 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
   const [positions, setPositions] = useState(initialPositions);
   const [entries, setEntries] = useState(initialEntries);
   const [opening, setOpening] = useState(initialOpening);
+  const [month, setMonth] = useState(localToday().slice(0, 7));
+  const [filterAccount, setFilterAccount] = useState("");
+  const [filterKind, setFilterKind] = useState("");
   const [kind, setKind] = useState<"income" | "expense" | "transfer">("expense");
   const [accountScope, setAccountScope] = useState<"individual" | "shared">("individual");
   const [busy, setBusy] = useState(false);
@@ -51,13 +55,17 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
   const totalBalance = positions.reduce((sum, item) => sum + BigInt(item.balance_cents), 0n);
   const totalReserved = positions.reduce((sum, item) => sum + BigInt(item.reserved_cents), 0n);
 
+  const filteredEntries = entries.filter(entry =>
+    (!month || entry.occurred_on.startsWith(month)) &&
+    (!filterAccount || entry.source_account_id === filterAccount || entry.destination_account_id === filterAccount) &&
+    (!filterKind || entry.kind === filterKind));
+
   async function refresh() {
     const supabase = browserClient();
     const [accountsResult, positionsResult, entriesResult, openingResult] = await Promise.all([
       supabase.from("accounts").select("id,owner_id,name,scope").eq("relationship_id", relationshipId).order("name"),
       supabase.rpc("list_account_positions", { target_relationship: relationshipId }),
-      supabase.from("financial_entries").select("id,owner_id,scope,kind,amount_cents,source_account_id,destination_account_id,description,occurred_on,reversed_at,created_at")
-        .eq("relationship_id", relationshipId).order("occurred_on", { ascending: false }).order("created_at", { ascending: false }).limit(200),
+      listEntries(supabase, relationshipId),
       supabase.from("account_opening_balances").select("account_id,amount_cents,noted_on").eq("relationship_id", relationshipId),
     ]);
     if (accountsResult.error || positionsResult.error || entriesResult.error || openingResult.error)
@@ -150,7 +158,7 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
   }
 
   return <>
-    <PageHeading eyebrow="DINHEIRO DO CASAL" title="Finanças reais, com clareza." description="Saldos e movimentações salvos no banco local." />
+    <PageHeading eyebrow="DINHEIRO DO CASAL" title="Finanças reais, com clareza." description="Saldos e movimentações salvos no seu espaço." />
     <p className="prepared-note mb-6">O <Link href="/planejamento">planejamento mensal</Link> contém estimativas. Registre aqui somente movimentações que já aconteceram. O saldo inicial não é receita.</p>
     <div className="stat-grid">
       <article className="stat-card balance"><span>Saldo total das contas</span><strong>{moneyFromCents(totalBalance)}</strong><small>Saldo inicial mais movimentações ativas</small></article>
@@ -193,12 +201,21 @@ export function RealFinanceView({ relationshipId, userId, names, initialAccounts
           <div className="form-row"><label>Saldo inicial (R$)<input name="opening" inputMode="decimal" defaultValue="0,00" disabled={accountScope === "shared"} required /></label>
             <label>Data do saldo<input name="opening_on" type="date" defaultValue={localToday()} max={localToday()} required /></label></div>
           <Button variant="outline" disabled={busy}>{busy ? "Salvando…" : "Criar conta"}</Button>
-          <p className="footnote">Uma conta conjunta nova começa em zero. O cofrinho existente mantém os R$ 500 já informados.</p>
+          <p className="footnote">Uma conta conjunta nova começa em zero. Contas existentes preservam o saldo já registrado.</p>
         </form>
       </section>
     </div>
-    <section className="panel mt-6"><h2>Histórico recente</h2>
-      {!entries.length ? <Empty>Nenhuma movimentação efetiva registrada.</Empty> : <ul className="entry-list">{entries.map(entry => <li className={entry.reversed_at ? "reversed" : ""} key={entry.id}>
+    <section className="panel mt-6"><h2>Histórico de movimentações</h2>
+      <div className="form-stack mt-4">
+        <div className="form-row">
+          <label>Mês do histórico<input type="month" value={month} onChange={event => setMonth(event.target.value)} /></label>
+          <label>Filtrar por conta<select value={filterAccount} onChange={event => setFilterAccount(event.target.value)}><option value="">Todas as contas</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}</select></label>
+        </div>
+        <label>Filtrar por tipo<select value={filterKind} onChange={event => setFilterKind(event.target.value)}><option value="">Todos os tipos</option><option value="income">Receitas</option><option value="expense">Despesas</option><option value="transfer">Transferências</option></select></label>
+        <Button type="button" variant="ghost" onClick={() => { setMonth(""); setFilterAccount(""); setFilterKind(""); }}>Ver todo o histórico</Button>
+      </div>
+      <p className="footnote">{filteredEntries.length} movimentações neste filtro, incluindo reversões. Os saldos acima representam todas as movimentações.</p>
+      {!filteredEntries.length ? <Empty>Nenhuma movimentação encontrada neste filtro.</Empty> : <ul className="entry-list">{filteredEntries.map(entry => <li className={entry.reversed_at ? "reversed" : ""} key={entry.id}>
         <div><strong>{entry.description}</strong><small>{entry.occurred_on.split("-").reverse().join("/")} · {names[entry.owner_id] ?? "Participante"} · {entry.kind === "transfer" ? "Transferência" : entry.kind === "income" ? "Receita" : "Despesa"}</small>
           <small>{entry.source_account_id ? accountMap.get(entry.source_account_id)?.name ?? "Conta" : "Origem externa"} → {entry.destination_account_id ? accountMap.get(entry.destination_account_id)?.name ?? "Conta" : "Destino externo"}</small>
           <span>{moneyFromCents(entry.amount_cents)}</span></div>

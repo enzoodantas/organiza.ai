@@ -3,7 +3,25 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
 
-  "public": {
+  "graphql_public": {
+          Tables: {
+            [_ in never]: never
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "account_opening_balances": {
                   Row: {
@@ -191,6 +209,66 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"mascot_inventory": {
+                  Row: {
+                    "equipped": boolean,"item_id": string,"purchased_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "equipped"?: boolean,"item_id": string,"purchased_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "equipped"?: boolean,"item_id"?: string,"purchased_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mascot_inventory_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "mascot_items"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "mascot_inventory_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"mascot_items": {
+                  Row: {
+                    "id": string,"name": string,"price": number,"slot": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id": string,"name": string,"price": number,"slot": string
+                  }
+                  Update: {
+                    "id"?: string,"name"?: string,"price"?: number,"slot"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"mascot_reviews": {
+                  Row: {
+                    "reviewed_at": string,"user_id": string,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "reviewed_at"?: string,"user_id": string,"week_start": string
+                  }
+                  Update: {
+                    "reviewed_at"?: string,"user_id"?: string,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mascot_reviews_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"mascot_species": {
                   Row: {
                     "created_at": string,"display_name": string,"id": string,"is_selectable": boolean
@@ -204,6 +282,26 @@ isOneToOne: false
                   }
                   Relationships: [
 
+                  ]
+                },"mascot_wallets": {
+                  Row: {
+                    "coins": number,"user_id": string,"xp": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "coins"?: number,"user_id": string,"xp"?: number
+                  }
+                  Update: {
+                    "coins"?: number,"user_id"?: string,"xp"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mascot_wallets_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"monthly_plan_items": {
                   Row: {
@@ -346,6 +444,12 @@ isOneToOne: false
             "accept_relationship_invitation":
 { Args: { "invitation_id": string }; Returns: string
                            },
+"buy_mascot_item":
+{ Args: { "target_item": string }; Returns: boolean
+                           },
+"complete_mascot_review":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "create_financial_account":
 { Args: { "account_name": string,"account_scope": string,"opening_cents": number,"opening_on": string,"request_key": string,"target_relationship": string }; Returns: string
                            },
@@ -360,6 +464,9 @@ isOneToOne: false
                            },
 "ensure_number_campaign":
 { Args: { "target_relationship": string }; Returns: string
+                           },
+"equip_mascot_item":
+{ Args: { "target_item": string,"wear": boolean }; Returns: undefined
                            },
 "invite_partner":
 { Args: { "partner_email": string }; Returns: string
@@ -505,7 +612,11 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "graphql_public": {
+          Enums: {
+
+          }
+        },"public": {
           Enums: {
 
           }
