@@ -329,6 +329,26 @@ isOneToOne: false
       referencedColumns: ["relationship_id","user_id"]
     }
                   ]
+                },"profile_photos": {
+                  Row: {
+                    "image_data": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "image_data": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "image_data"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_photos_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string,"id": string,"mascot": string
@@ -495,6 +515,9 @@ isOneToOne: false
                            },
 "select_mascot":
 { Args: { "target_species": string }; Returns: string
+                           },
+"set_profile_photo":
+{ Args: { "photo_data": string }; Returns: undefined
                            }
           }
           Enums: {

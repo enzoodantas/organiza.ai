@@ -148,3 +148,7 @@ Próximo passo pendente de resposta: migrar as duas contas com o planejamento at
 ## Atualização de entrega — 30/10/2026
 
 As duas contas de acesso, as senhas existentes, o vínculo, 18 estimativas e a conta financeira/saldo inicial foram migrados ao ambiente online por autorização do usuário. Não houve criação de lançamentos ou aportes. O seletor de espécie e o guarda-roupa persistentes foram implementados; esta atualização substitui as pendências anteriores sobre seleção e inventário cosmético. Regras, limites e validação estão em [MASCOTS.md](MASCOTS.md). A migração `202610300001` foi aplicada localmente e ao remoto; lint remoto sem erros. Realtime, funcionamento offline, exportação/backup, saída/retenção e recuperação externa continuam pendentes.
+
+### Fotos de perfil — 30/10/2026
+
+Implementadas foto individual com prévia, compressão, substituição e remoção em Perfil/Minha conta, cabeçalho/lateral e identificação do casal. Uma miniatura privada por usuário, separada das finanças; migração `202610300002`. Testes e limites estão em VALIDATION.md e ARCHITECTURE.md. Deploy automático pelo GitHub ainda depende de liberar o repositório no aplicativo Vercel; a CLI atual não tem permissão para conceder esse acesso nem criar token de automação.

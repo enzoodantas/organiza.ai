@@ -8,5 +8,9 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await serverClient();
   const { data } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  return <html lang="pt-BR"><body><DemoProvider><Shell initialAuthenticated={!!data.user} privateApp={process.env.APP_PRIVATE === "true"}>{children}</Shell></DemoProvider></body></html>;
+  const [profile, photo] = supabase && data.user ? await Promise.all([
+    supabase.from("profiles").select("display_name").eq("id", data.user.id).maybeSingle(),
+    supabase.from("profile_photos").select("image_data").eq("user_id", data.user.id).maybeSingle(),
+  ]) : [null, null];
+  return <html lang="pt-BR"><body><DemoProvider><Shell initialAuthenticated={!!data.user} privateApp={process.env.APP_PRIVATE === "true"} profileName={profile?.data?.display_name ?? "Minha conta"} profilePhoto={photo?.data?.image_data ?? null}>{children}</Shell></DemoProvider></body></html>;
 }

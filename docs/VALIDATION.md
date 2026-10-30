@@ -143,3 +143,12 @@ Na QA visual do login em 320 px, identificado botão flutuante sobrepondo o subm
 - Publicação concluída na Vercel: `dpl_EoJR3KvWZaxuV4vGPwwhbNonx3sE`, estado READY; build cloud e TypeScript passaram, domínio público atualizado. A primeira tentativa falhou na conexão; a segunda concluiu. Diagnóstico identificou timeout em conexões diretas do Node; inspeções posteriores usaram o proxy do ambiente.
 - Smoke no domínio de produção passou para as duas contas com sessões temporárias verificadas pelo Auth (sem envio de e-mail): cada uma leu os 18 itens, dois perfis/membros e uma conta financeira; seis rotas autenticadas e o guarda-roupa abriram em 320 px sem erros de carregamento ou JavaScript. Sessões de teste encerradas individualmente. Anônimo redirecionado à entrada; `.env.local`, `LOCAL_CONTEXT.md` e `AGENTS.md` retornaram 404.
 - Limites: não foi digitada a senha pessoal de nenhuma conta; preservação dos hashes e acesso por sessões temporárias foram verificados separadamente. SMTP/recuperação externa, exportação/backup e saída/retenção continuam pendentes. Nenhum commit/push realizado nesta rodada.
+
+## Fotos de perfil — 30/10/2026
+
+- TypeScript, ESLint, 44 testes Vitest, teste Node de deploy e build de produção passaram.
+- SQL local com fixtures/rollback passou: upsert sem acumular linhas, formato/tamanho, escrita direta bloqueada, parceiro, usuário estranho, revogação, remoção pelo próprio usuário e acesso anônimo negado.
+- Smoke Chrome com duas contas e imagens sintéticas passou: SVG/arquivo grande recusados, cancelar sem gravação, conversão PNG → JPEG 192 px/até 32 KiB, salvar/cabeçalho/reload, substituir sem acúmulo, leitura pelo parceiro, remoção independente, identificação em Minha conta e largura 320 px, sem erros de JavaScript. Fixtures removidas; nenhuma foto pessoal usada.
+- Dry-run remoto listou apenas `202610300002_profile_photos.sql`; migração aplicada via CLI. Não alterados saldos, estimativas, mascotes nem fotos pessoais.
+- Tentativa de ativar integração nativa GitHub/Vercel recusada por falta de acesso; tentativa de criar token de automação dedicado via API recusada com HTTP 403. Nenhum token criado ou segredo transferido. Usuário orientado a liberar somente este repositório no aplicativo Vercel do GitHub; automação depende dessa ação externa.
+- Dez cenários E2E da demonstração (desktop/mobile) passaram; lint remoto também sem erros após a migração.

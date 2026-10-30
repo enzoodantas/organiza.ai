@@ -93,3 +93,7 @@ No plano gratuito do Supabase, manter backups externos com `supabase db dump` e 
 ## Licença
 
 Licença de distribuição do produto ainda não definida; todos os direitos reservados. Mascotes e ícone foram desenhados para este projeto. Dependências mantêm suas licenças originais; Button segue o padrão de composição do shadcn/ui (MIT), sem assets de jogos de terceiros.
+
+### Fotos de perfil
+
+Em Perfil ou Minha conta, cada pessoa pode escolher, conferir a prévia, salvar, substituir ou remover sua foto. A imagem é recortada pelo centro e reprocessada no navegador para JPEG de 192 × 192 px, até 32 KiB (cerca de 43 KiB em base64). Uma miniatura por conta é mantida numa tabela separada; o original e seus metadados não são enviados. JPG, PNG e WebP de até 8 MiB são aceitos como origem. A foto aparece no cabeçalho, na lateral e na identificação dos participantes em Minha conta; sem foto, são exibidas iniciais. RLS permite leitura apenas pelo dono e parceiro ativo; a RPC altera somente o próprio usuário. Fotos não são públicas nem entram nas consultas financeiras. Migração: `202610300002_profile_photos.sql`. Testes: `supabase/tests/profile_photos.sql` e `node tests/profile-photo-smoke.mjs` (local e sintético).

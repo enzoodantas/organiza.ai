@@ -3,6 +3,8 @@ import { serverClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 import { Button } from "@/components/ui/button";
 import { AccountOnboarding } from "@/components/account-onboarding";
+import { ProfilePhotoEditor } from "@/components/profile-photo-editor";
+import { ProfileAvatar } from "@/components/profile-avatar";
 
 export const metadata = { title: "Minha conta" };
 export const dynamic = "force-dynamic";
@@ -22,10 +24,11 @@ export default async function Page() {
   if (authError || !auth.user) redirect("/entrar");
 
   const [{ data: profile, error: profileError }, { data: membership, error: memberError },
-    { data: invitations, error: invitationError }] = await Promise.all([
+    { data: invitations, error: invitationError }, { data: photos, error: photoError }] = await Promise.all([
     supabase.from("profiles").select("display_name,mascot").eq("id", auth.user.id).maybeSingle(),
     supabase.from("relationship_members").select("relationship_id").eq("user_id", auth.user.id).is("revoked_at", null).maybeSingle(),
     supabase.rpc("list_relationship_invitations"),
+    supabase.from("profile_photos").select("user_id,image_data"),
   ]);
 
   let relationship: { id: string; name: string } | null = null;
@@ -54,6 +57,8 @@ export default async function Page() {
   return <section className="panel max-w-2xl">
     <h1>Minha conta</h1>
     <p className="muted mt-3">Seu planejamento, suas contas e movimentações ficam salvos no seu espaço. Registre somente valores efetivos nas áreas financeiras.</p>
+    {profile && (photoError ? <p role="alert" className="form-error mt-4">Não foi possível carregar sua foto. Atualize a página.</p>
+      : <ProfilePhotoEditor name={profile.display_name} photo={photos?.find(photo => photo.user_id === auth.user.id)?.image_data ?? null} />)}
     {loadError ? <p role="alert" className="form-error mt-6">Não foi possível carregar o vínculo. Atualize a página e tente novamente.</p>
       : <AccountOnboarding
         email={auth.user.email ?? ""}
@@ -62,6 +67,7 @@ export default async function Page() {
         members={members}
         invitations={(invitations ?? []) as Invitation[]}
       />}
+    {!loadError && !photoError && members.length > 0 && <div className="profile-member-list mt-6">{members.map(member => <div key={member.user_id} className="profile-member"><ProfileAvatar name={member.profiles?.display_name ?? "Participante"} photo={photos?.find(photo => photo.user_id === member.user_id)?.image_data} /><span>{member.profiles?.display_name ?? "Participante"}</span></div>)}</div>}
     <form action={signOut} className="mt-8"><Button variant="outline">Sair da conta</Button></form>
   </section>;
 }

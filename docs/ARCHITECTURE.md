@@ -175,3 +175,9 @@ Auth remoto: provedor e-mail habilitado, cadastro público bloqueado, Site URL e
 ## Estado atualizado — 30/10/2026
 
 A migração autorizada das duas identidades e dados locais foi concluída: perfis, espaço/membros, 18 estimativas, conta e saldo inicial, com UUIDs e hashes de senha preservados. Nenhuma sessão local foi copiada. O schema remoto inclui as operações financeiras e a nova migração `202610300001_mascot_wardrobe.sql`. A seleção de espécie deixou de ser apenas planejada: UI persistente em `/mascotes`, aparência compartilhada com o dashboard e rótulos independentes de espécie/dono. A economia cosmética efetiva e seus limites estão em [MASCOTS.md](MASCOTS.md); as seções históricas acima descrevem etapas anteriores.
+
+## Fotos de perfil — 30/10/2026
+
+`profile_photos` contém uma miniatura JPEG por `user_id`, com FK/cascade do perfil, texto base64 limitado a 43.715 bytes e data da atualização. Mantê-la separada evita aumentar as consultas usuais de perfis/finanças. Não há bucket público, URLs externas nem upload do original: o navegador recorta o centro, reduz a 192 px e reencoda em JPEG, descartando metadados. A RPC aceita no máximo 32 KiB decodificados e verifica MIME/prefixo base64 e marcadores JPEG; o banco não executa um decodificador de imagem nem verifica dimensões. As dimensões e a recompressão são controladas pelo cliente. O limite rígido de tamanho é validado também no banco.
+
+RLS concede SELECT apenas ao próprio usuário ou parceiro ativo; não há escrita direta pelo cliente. `set_profile_photo(text)` usa `auth.uid()`, lock no próprio perfil e upsert; NULL remove a linha. Não recebe ID de proprietário, não modifica outros campos e não concede execução a anônimos. Layout autenticado consulta somente a própria miniatura para cabeçalho/lateral; Minha conta também pode consultar o parceiro. Sem sessão não há carregamento dessas fotos. Alterar/remover usa `router.refresh()` para atualizar a aparência no layout.
